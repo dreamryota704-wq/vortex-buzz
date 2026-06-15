@@ -28,6 +28,10 @@ jobs:
       - name: 依存パッケージをインストール
         run: pip install -r requirements.txt google-auth google-auth-httplib2 google-api-python-client
 
+      - name: 今日の日付を取得
+        id: date
+        run: echo "today=$(TZ=Asia/Tokyo date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+
       - name: 動画を生成
         run: python auto_daily.py
 
@@ -35,6 +39,6 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: videos-${{ github.run_id }}
-          path: output/
+          name: videos-${{ steps.date.outputs.today }}
+          path: output/${{ steps.date.outputs.today }}/
           retention-days: 30

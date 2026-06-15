@@ -137,9 +137,25 @@ def _open_finder(folder: Path):
         pass
 
 
+def _move_to_date_folder(account: str, stdout: str, today_str: str) -> Path | None:
+    """生成された動画を output/YYYY-MM-DD/account/ に移動して新パスを返す"""
+    # make_video.py の出力から「出力先 : /path/to/file.mp4」を探す
+    for line in stdout.splitlines():
+        if "出力先" in line and ".mp4" in line:
+            src = Path(line.split(":")[-1].strip())
+            if src.exists():
+                dest_dir = BASE_DIR / "output" / today_str / account
+                dest_dir.mkdir(parents=True, exist_ok=True)
+                dest = dest_dir / src.name
+                src.rename(dest)
+                return dest
+    return None
+
+
 def generate_for_account(account: str, dry_run: bool = False) -> dict:
     """1アカウント分の動画を生成して結果を返す"""
     today_weekday = date.today().weekday()
+    today_str = date.today().strftime("%Y-%m-%d")
     topics = DAILY_TOPICS.get(account, [])
     if not topics:
         return {"account": account, "status": "skip", "reason": "トピック未設定"}
@@ -171,8 +187,10 @@ def generate_for_account(account: str, dry_run: bool = False) -> dict:
     result = subprocess.run(cmd, capture_output=True, text=True, cwd=str(BASE_DIR))
 
     if result.returncode == 0:
-        logger.info(f"[{account}] 生成完了")
-        return {"account": account, "status": "ok", "topic": topic, "stdout": result.stdout}
+        dest = _move_to_date_folder(account, result.stdout, today_str)
+        dest_str = str(dest) if dest else "不明"
+        logger.info(f"[{account}] 生成完了 → {dest_str}")
+        return {"account": account, "status": "ok", "topic": topic, "output": dest_str}
     else:
         logger.error(f"[{account}] 失敗\n{result.stderr}")
         return {"account": account, "status": "error", "reason": result.stderr[-300:]}
