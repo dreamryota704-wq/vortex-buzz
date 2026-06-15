@@ -31,16 +31,10 @@ jobs:
       - name: 動画を生成
         run: python auto_daily.py
 
-      - name: Google Drive にアップロード
-        env:
-          GOOGLE_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
-          GOOGLE_DRIVE_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
-        run: python upload_to_drive.py
-
-      - name: 動画をバックアップ保存（7日間）
+      - name: 動画を保存（30日間ダウンロード可能）
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: videos-${{ github.run_id }}
           path: output/
-          retention-days: 7
+          retention-days: 30
