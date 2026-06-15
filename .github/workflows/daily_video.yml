@@ -32,6 +32,23 @@ jobs:
         id: date
         run: echo "today=$(TZ=Asia/Tokyo date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
 
+      - name: 素材動画を準備（なければテスト用を作成）
+        run: |
+          mkdir -p input/videos input/bgm
+          if [ $(find input/videos -name "*.mp4" ! -name "dummy.mp4" -size +0c | wc -l) -eq 0 ]; then
+            echo "素材動画がないのでテスト用を生成します..."
+            ffmpeg -f lavfi -i color=c=black:size=1080x1920:duration=15 \
+              -r 30 -c:v libx264 -preset ultrafast \
+              input/videos/test_material.mp4 -y 2>&1 | tail -3
+            echo "✅ テスト動画作成完了"
+          else
+            echo "✅ 素材動画あり"
+          fi
+          if [ $(find input/bgm -name "*.mp3" ! -name "dummy.mp3" -size +0c | wc -l) -eq 0 ]; then
+            ffmpeg -f lavfi -i anullsrc=r=44100:cl=stereo -t 15 \
+              -c:a libmp3lame input/bgm/test_bgm.mp3 -y 2>&1 | tail -3
+          fi
+
       - name: 動画を生成
         run: python auto_daily.py
 
