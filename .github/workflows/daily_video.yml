@@ -51,6 +51,8 @@ jobs:
 
       - name: 動画を生成
         run: python auto_daily.py
+        env:
+          TZ: Asia/Tokyo
 
       - name: 動画を保存（30日間ダウンロード可能）
         uses: actions/upload-artifact@v4
