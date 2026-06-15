@@ -1,6 +1,5 @@
 """
-Text overlay generation for short videos using Pillow and moviepy.
-Creates hook, body, and CTA text overlays as ImageClip composited onto video.
+Text overlay generation — TikTok スタイル（黒縁取り・大きな文字）
 """
 import logging
 from pathlib import Path
@@ -13,19 +12,15 @@ try:
     PIL_AVAILABLE = True
 except ImportError:
     PIL_AVAILABLE = False
-    logger.warning("Pillow not installed. Text overlays will not work.")
 
 try:
-    from moviepy.editor import ImageClip, VideoClip
-    from moviepy.video.VideoClip import ImageClip as MpyImageClip
+    from moviepy.editor import ImageClip
     MOVIEPY_AVAILABLE = True
 except ImportError:
     MOVIEPY_AVAILABLE = False
 
-# Canvas size for 9:16 video
 CANVAS_W, CANVAS_H = 1080, 1920
 
-# Default font path (falls back to PIL default if not found)
 FONTS_DIR = Path(__file__).parent.parent / "assets" / "fonts"
 DEFAULT_FONT_PATHS = [
     FONTS_DIR / "NotoSansJP-Bold.ttf",
@@ -43,7 +38,6 @@ DEFAULT_FONT_PATHS = [
 
 
 def _get_font(size: int):
-    """Load the best available Japanese font at the given size."""
     if not PIL_AVAILABLE:
         return None
     for font_path in DEFAULT_FONT_PATHS:
@@ -51,26 +45,36 @@ def _get_font(size: int):
             return ImageFont.truetype(str(font_path), size)
         except (IOError, OSError):
             continue
-    # Fallback to PIL default (no Japanese support but won't crash)
     try:
         return ImageFont.load_default()
     except Exception:
         return None
 
 
-def _wrap_text(text: str, font, max_width: int, draw: "ImageDraw.Draw") -> List[str]:
-    """Wrap text to fit within max_width pixels."""
+def _draw_stroked_text(draw, x: int, y: int, text: str, font, fill, stroke_color, stroke_width: int = 6):
+    """テキストを縁取り付きで描画（TikTokスタイル）"""
+    # 縁取り: 上下左右斜め8方向に同じテキストを描画
+    for dx in range(-stroke_width, stroke_width + 1, max(1, stroke_width // 3)):
+        for dy in range(-stroke_width, stroke_width + 1, max(1, stroke_width // 3)):
+            if dx != 0 or dy != 0:
+                draw.text((x + dx, y + dy), text, font=font, fill=stroke_color)
+    draw.text((x, y), text, font=font, fill=fill)
+
+
+def _wrap_text(text: str, font, max_width: int, draw) -> List[str]:
     lines = []
     for paragraph in text.splitlines():
         if not paragraph:
             lines.append("")
             continue
-        words = list(paragraph)  # Split into individual characters for CJK
         current_line = ""
-        for char in words:
+        for char in list(paragraph):
             test_line = current_line + char
-            bbox = draw.textbbox((0, 0), test_line, font=font)
-            w = bbox[2] - bbox[0]
+            try:
+                bbox = draw.textbbox((0, 0), test_line, font=font)
+                w = bbox[2] - bbox[0]
+            except Exception:
+                w = len(test_line) * 30
             if w <= max_width:
                 current_line = test_line
             else:
@@ -82,221 +86,177 @@ def _wrap_text(text: str, font, max_width: int, draw: "ImageDraw.Draw") -> List[
     return lines
 
 
-def _create_text_image(
-    text: str,
-    font_size: int,
-    text_color: Tuple[int, int, int, int],
-    shadow_color: Tuple[int, int, int, int],
-    bg_color: Optional[Tuple[int, int, int, int]],
-    canvas_w: int = CANVAS_W,
-    padding: int = 60,
-    shadow_offset: int = 3,
-) -> "Image.Image":
-    """
-    Render text to a transparent RGBA image with optional background and shadow.
-    Returns the image at native canvas width with auto-computed height.
-    """
-    font = _get_font(font_size)
-    # First pass: measure text
-    temp_img = Image.new("RGBA", (canvas_w, 100), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(temp_img)
-    max_text_w = canvas_w - padding * 2
-    lines = _wrap_text(text, font, max_text_w, draw)
-
-    line_heights = []
-    for line in lines:
-        if line:
-            bbox = draw.textbbox((0, 0), line, font=font)
-            line_heights.append(bbox[3] - bbox[1])
-        else:
-            line_heights.append(font_size)
-
-    line_spacing = int(font_size * 0.3)
-    total_text_h = sum(line_heights) + line_spacing * (len(lines) - 1)
-    img_h = total_text_h + padding * 2
-
-    # Second pass: draw
-    img = Image.new("RGBA", (canvas_w, img_h), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(img)
-
-    if bg_color:
-        draw.rectangle([0, 0, canvas_w, img_h], fill=bg_color)
-
-    y = padding
-    for i, line in enumerate(lines):
-        if not line:
-            y += line_heights[i] if i < len(line_heights) else font_size
-            continue
-        # Center each line
-        bbox = draw.textbbox((0, 0), line, font=font)
-        text_w = bbox[2] - bbox[0]
-        x = (canvas_w - text_w) // 2
-
-        # Draw shadow
-        draw.text(
-            (x + shadow_offset, y + shadow_offset),
-            line,
-            font=font,
-            fill=shadow_color,
-        )
-        # Draw main text
-        draw.text((x, y), line, font=font, fill=text_color)
-        y += line_heights[i] + line_spacing
-
-    return img
+def _text_size(draw, text: str, font) -> Tuple[int, int]:
+    try:
+        bbox = draw.textbbox((0, 0), text, font=font)
+        return bbox[2] - bbox[0], bbox[3] - bbox[1]
+    except Exception:
+        return len(text) * 30, 40
 
 
-def create_hook_overlay(text: str, duration: float = 3.0, font_size: int = 72):
-    """
-    Create hook text overlay for the first `duration` seconds of the video.
-    White bold text with black shadow, centered on screen.
+def _pil_to_array(img):
+    import numpy as np
+    if img.mode == "RGBA":
+        bg = Image.new("RGB", img.size, (0, 0, 0))
+        bg.paste(img, mask=img.split()[3])
+        return np.array(bg)
+    return np.array(img.convert("RGB"))
 
-    Args:
-        text: Hook text string
-        duration: Duration in seconds (default 3)
-        font_size: Font size in pixels (default 72)
 
-    Returns:
-        moviepy ImageClip positioned at center-top of frame
-    """
+# ─────────────────────────────────────────────────────────────────────────────
+# Hook overlay（0〜3秒: 画面上部に大きく表示）
+# ─────────────────────────────────────────────────────────────────────────────
+
+def create_hook_overlay(text: str, duration: float = 3.0, font_size: int = 90):
+    """フック文: 大きな白文字 + 黒縁取り、半透明グラデーション背景"""
     if not PIL_AVAILABLE or not MOVIEPY_AVAILABLE:
-        logger.warning("PIL or moviepy not available, returning None for hook overlay")
         return None
 
-    img = _create_text_image(
-        text=text,
-        font_size=font_size,
-        text_color=(255, 255, 255, 255),
-        shadow_color=(0, 0, 0, 200),
-        bg_color=(0, 0, 0, 120),
-        padding=50,
-        shadow_offset=4,
-    )
+    font = _get_font(font_size)
+    padding_x = 60
+    max_w = CANVAS_W - padding_x * 2
 
-    img_array = _pil_to_array(img)
-    clip = ImageClip(img_array, ismask=False)
+    # テキスト計測
+    temp = Image.new("RGBA", (CANVAS_W, 100), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(temp)
+    lines = _wrap_text(text, font, max_w, draw)
+
+    line_h = font_size + 10
+    total_h = line_h * len(lines) + 60
+    img_h = total_h + 80
+
+    img = Image.new("RGBA", (CANVAS_W, img_h), (0, 0, 0, 0))
+
+    # 半透明グラデーション背景
+    for y in range(img_h):
+        alpha = int(160 * (1 - abs(y - img_h / 2) / (img_h / 2)) + 80)
+        alpha = min(200, max(60, alpha))
+        for x in range(CANVAS_W):
+            img.putpixel((x, y), (0, 0, 0, alpha))
+
+    draw = ImageDraw.Draw(img)
+
+    y = 40
+    for line in lines:
+        w, _ = _text_size(draw, line, font)
+        x = (CANVAS_W - w) // 2
+        _draw_stroked_text(draw, x, y, line, font,
+                           fill=(255, 255, 255, 255),
+                           stroke_color=(0, 0, 0, 255),
+                           stroke_width=8)
+        y += line_h
+
+    clip = ImageClip(_pil_to_array(img), ismask=False)
     clip = clip.set_duration(duration)
 
-    # Position: vertically centered in upper 40% of frame
-    x_pos = 0
-    y_pos = int(CANVAS_H * 0.2) - img.height // 2
-    y_pos = max(50, y_pos)
-
-    clip = clip.set_position((x_pos, y_pos))
+    y_pos = int(CANVAS_H * 0.12)
+    clip = clip.set_position((0, y_pos))
     return clip
 
 
-def create_body_overlay(
-    points: List[str],
-    start_time: float = 3.0,
-    font_size: int = 56,
-    video_duration: float = 15.0,
-):
-    """
-    Create body text overlays with sequential fade-in for each bullet point.
+# ─────────────────────────────────────────────────────────────────────────────
+# Body overlay（3〜12秒: 箇条書き、順番に表示）
+# ─────────────────────────────────────────────────────────────────────────────
 
-    Args:
-        points: List of text strings (each is a bullet point)
-        start_time: When the body overlay section begins (seconds)
-        font_size: Font size for body text
-        video_duration: Total video duration (needed to compute per-point timing)
-
-    Returns:
-        List of moviepy ImageClip objects
-    """
+def create_body_overlay(points: List[str], start_time: float = 3.0,
+                        font_size: int = 68, video_duration: float = 15.0):
+    """本文: 白文字 + 黒縁取り、ポイントごとに順番に表示"""
     if not PIL_AVAILABLE or not MOVIEPY_AVAILABLE:
-        logger.warning("PIL or moviepy not available, returning [] for body overlay")
         return []
 
+    font = _get_font(font_size)
     clips = []
-    body_duration = video_duration - start_time - 3.0  # Reserve last 3s for CTA
+    body_duration = video_duration - start_time - 3.0
     if body_duration <= 0:
         body_duration = video_duration - start_time
     per_point = body_duration / max(len(points), 1)
 
     for i, point in enumerate(points):
-        bullet_text = f"・{point}"
-        img = _create_text_image(
-            text=bullet_text,
-            font_size=font_size,
-            text_color=(255, 255, 255, 255),
-            shadow_color=(0, 0, 0, 180),
-            bg_color=None,
-            padding=40,
-            shadow_offset=3,
-        )
-        img_array = _pil_to_array(img)
-        clip = ImageClip(img_array, ismask=False)
+        text = f"✅ {point}"
+        padding_x = 50
+        max_w = CANVAS_W - padding_x * 2
 
+        temp = Image.new("RGBA", (CANVAS_W, 100), (0, 0, 0, 0))
+        draw_temp = ImageDraw.Draw(temp)
+        lines = _wrap_text(text, font, max_w, draw_temp)
+
+        line_h = font_size + 12
+        img_h = line_h * len(lines) + 40
+        img = Image.new("RGBA", (CANVAS_W, img_h), (0, 0, 0, 0))
+
+        # 左端にアクセントライン
+        for y in range(img_h):
+            for x in range(8):
+                img.putpixel((x, y), (255, 220, 0, 220))
+
+        draw = ImageDraw.Draw(img)
+        y = 20
+        for line in lines:
+            _draw_stroked_text(draw, padding_x, y, line, font,
+                               fill=(255, 255, 255, 255),
+                               stroke_color=(0, 0, 0, 255),
+                               stroke_width=6)
+            y += line_h
+
+        clip = ImageClip(_pil_to_array(img), ismask=False)
         point_start = start_time + i * per_point
         point_duration = body_duration - i * per_point
         clip = clip.set_start(point_start).set_duration(point_duration)
-
-        # Fade in over 0.3 seconds
         clip = clip.crossfadein(0.3)
 
-        # Stack points vertically: center of screen, offset by index
-        y_pos = int(CANVAS_H * 0.4) + i * (font_size + 30)
+        y_pos = int(CANVAS_H * 0.42) + i * (img_h + 20)
         clip = clip.set_position((0, y_pos))
         clips.append(clip)
 
     return clips
 
 
-def create_cta_overlay(
-    text: str,
-    start_offset_from_end: float = 3.0,
-    font_size: int = 60,
-    video_duration: float = 15.0,
-):
-    """
-    Create CTA overlay for the last `start_offset_from_end` seconds.
-    Uses highlighted yellow/orange background for visibility.
+# ─────────────────────────────────────────────────────────────────────────────
+# CTA overlay（最後3秒: 黄色背景で目立つCTA）
+# ─────────────────────────────────────────────────────────────────────────────
 
-    Args:
-        text: CTA text string (may contain newlines)
-        start_offset_from_end: Seconds from end to show CTA (default 3)
-        font_size: Font size (default 60)
-        video_duration: Total video duration
-
-    Returns:
-        moviepy ImageClip for the CTA section
-    """
+def create_cta_overlay(text: str, start_offset_from_end: float = 3.0,
+                       font_size: int = 72, video_duration: float = 15.0):
+    """CTA: 黄色背景 + 黒文字 + 縁取り、画面下部に大きく表示"""
     if not PIL_AVAILABLE or not MOVIEPY_AVAILABLE:
-        logger.warning("PIL or moviepy not available, returning None for CTA overlay")
         return None
 
-    img = _create_text_image(
-        text=text,
-        font_size=font_size,
-        text_color=(30, 30, 30, 255),
-        shadow_color=(200, 150, 0, 160),
-        bg_color=(255, 210, 0, 230),  # Yellow/orange highlight
-        padding=40,
-        shadow_offset=2,
-    )
+    font = _get_font(font_size)
+    padding_x = 40
+    max_w = CANVAS_W - padding_x * 2
 
-    img_array = _pil_to_array(img)
-    clip = ImageClip(img_array, ismask=False)
+    temp = Image.new("RGBA", (CANVAS_W, 100), (0, 0, 0, 0))
+    draw_temp = ImageDraw.Draw(temp)
+    lines = _wrap_text(text, font, max_w, draw_temp)
 
+    line_h = font_size + 14
+    img_h = line_h * len(lines) + 70
+
+    img = Image.new("RGBA", (CANVAS_W, img_h), (0, 0, 0, 0))
+
+    # 鮮やかな黄色背景
+    draw = ImageDraw.Draw(img)
+    draw.rounded_rectangle([0, 0, CANVAS_W, img_h], radius=20,
+                            fill=(255, 220, 0, 240))
+    # 上下に黒ライン
+    draw.rectangle([0, 0, CANVAS_W, 6], fill=(0, 0, 0, 255))
+    draw.rectangle([0, img_h - 6, CANVAS_W, img_h], fill=(0, 0, 0, 255))
+
+    y = 35
+    for line in lines:
+        w, _ = _text_size(draw, line, font)
+        x = (CANVAS_W - w) // 2
+        _draw_stroked_text(draw, x, y, line, font,
+                           fill=(20, 20, 20, 255),
+                           stroke_color=(255, 255, 255, 180),
+                           stroke_width=4)
+        y += line_h
+
+    clip = ImageClip(_pil_to_array(img), ismask=False)
     cta_start = max(0.0, video_duration - start_offset_from_end)
-    cta_duration = video_duration - cta_start
-    clip = clip.set_start(cta_start).set_duration(cta_duration)
+    clip = clip.set_start(cta_start).set_duration(video_duration - cta_start)
+    clip = clip.crossfadein(0.4)
 
-    # Position: bottom area of screen
-    y_pos = int(CANVAS_H * 0.75)
+    y_pos = int(CANVAS_H * 0.72)
     clip = clip.set_position((0, y_pos))
-
     return clip
-
-
-def _pil_to_array(img: "Image.Image"):
-    """Convert PIL RGBA image to numpy array (RGB + alpha handled)."""
-    import numpy as np
-    # Convert to RGBA then back to RGB for moviepy compatibility
-    if img.mode == "RGBA":
-        # Composite on black background for moviepy (which doesn't support alpha directly)
-        bg = Image.new("RGB", img.size, (0, 0, 0))
-        bg.paste(img, mask=img.split()[3])
-        return np.array(bg)
-    return np.array(img.convert("RGB"))

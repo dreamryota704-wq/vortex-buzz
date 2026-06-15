@@ -192,8 +192,27 @@ def main(account, video, bgm, info, topic, funnel, platform, dry_run, verbose):
         image_exts = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
         if video_path.suffix.lower() in image_exts:
             from moviepy.editor import ImageClip
-            click.echo("[make_video] 画像ファイルを検出 → 15秒動画に変換")
-            clip = ImageClip(str(video_path)).set_duration(15)
+            import numpy as np
+            click.echo("[make_video] 画像ファイルを検出 → ケンバーンズ効果付き15秒動画に変換")
+            base_clip = ImageClip(str(video_path)).set_duration(15)
+            W, H = base_clip.size
+            # ゆっくりズームイン（1.0→1.12倍、15秒かけて）
+            def make_zoom_frame(t):
+                progress = t / 15.0
+                scale = 1.0 + 0.12 * progress
+                frame = base_clip.get_frame(t)
+                from PIL import Image as PILImage
+                img = PILImage.fromarray(frame)
+                new_w = int(W * scale)
+                new_h = int(H * scale)
+                img = img.resize((new_w, new_h), PILImage.LANCZOS)
+                left = (new_w - W) // 2
+                top = (new_h - H) // 2
+                img = img.crop((left, top, left + W, top + H))
+                return np.array(img)
+            from moviepy.editor import VideoClip
+            clip = VideoClip(make_zoom_frame, duration=15)
+            clip.size = (W, H)
         else:
             clip = VideoFileClip(str(video_path))
 
