@@ -189,7 +189,13 @@ def main(account, video, bgm, info, topic, funnel, platform, dry_run, verbose):
         from modules.sfx_engine import add_sfx, get_default_sfx_events
 
         click.echo("[make_video] 動画読み込み中...")
-        clip = VideoFileClip(str(video_path))
+        image_exts = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
+        if video_path.suffix.lower() in image_exts:
+            from moviepy.editor import ImageClip
+            click.echo("[make_video] 画像ファイルを検出 → 15秒動画に変換")
+            clip = ImageClip(str(video_path)).set_duration(15)
+        else:
+            clip = VideoFileClip(str(video_path))
 
         # ④ Crop to 9:16
         click.echo("[make_video] ④ 縦型クロップ (9:16)...")

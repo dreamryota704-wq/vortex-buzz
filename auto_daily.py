@@ -14,6 +14,8 @@ import sys
 from datetime import date, datetime
 from pathlib import Path
 
+import yaml
+
 BASE_DIR = Path(__file__).parent
 LOG_DIR = BASE_DIR / "logs"
 LOG_DIR.mkdir(exist_ok=True)
@@ -28,10 +30,25 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+def _load_daily_topics() -> dict:
+    """config/daily_content.yaml からトピック設定を読み込む"""
+    config_path = BASE_DIR / "config" / "daily_content.yaml"
+    if not config_path.exists():
+        logger.warning("config/daily_content.yaml が見つかりません。デフォルト設定を使います。")
+        return _DEFAULT_TOPICS
+    with open(config_path, encoding="utf-8") as f:
+        data = yaml.safe_load(f) or {}
+    accounts = data.get("accounts", {})
+    result = {}
+    for account, cfg in accounts.items():
+        result[account] = cfg.get("topics", [])
+    return result or _DEFAULT_TOPICS
+
+
 # ──────────────────────────────────────────────────────────────────────────────
-# 毎日のトピックローテーション（曜日ベース: 0=月, 6=日）
+# デフォルト設定（daily_content.yaml がない場合のフォールバック）
 # ──────────────────────────────────────────────────────────────────────────────
-DAILY_TOPICS = {
+_DEFAULT_TOPICS = {
     "account_A": [
         {"topic": "副業",           "info": "・月10万円を3ヶ月で達成した方法\n・初期費用0円でできる副業3選"},
         {"topic": "アフィリエイト", "info": "・アフィリエイトの基本の仕組み\n・初心者が最初にやるべきこと"},
@@ -81,28 +98,32 @@ DAILY_TOPICS = {
 
 
 def _pick_video(account: str) -> Path:
-    """input/videos/ からアカウント専用 or 共通の素材を選ぶ"""
+    """input/videos/ からアカウント専用 or 共通の素材（動画・写真）を選ぶ"""
     videos_dir = BASE_DIR / "input" / "videos"
+    supported = ["*.mp4", "*.mov", "*.jpg", "*.jpeg", "*.png", "*.webp"]
+    dummy_names = {"dummy.mp4", "dummy.mp3"}
 
-    # アカウント専用フォルダがあれば優先
+    def _collect(folder: Path):
+        files = []
+        for pattern in supported:
+            files.extend(folder.glob(pattern))
+        return [f for f in sorted(files) if f.name not in dummy_names and f.stat().st_size > 0]
+
+    # アカウント専用フォルダを優先
     account_dir = videos_dir / account
     if account_dir.exists():
-        mp4s = sorted(account_dir.glob("*.mp4"))
-        if mp4s:
-            # 曜日でローテーション
-            idx = date.today().weekday() % len(mp4s)
-            return mp4s[idx]
+        files = _collect(account_dir)
+        if files:
+            return files[date.today().weekday() % len(files)]
 
-    # 共通フォルダから選ぶ（dummy.mp4 を除外、なければ使う）
-    all_mp4s = [p for p in sorted(videos_dir.glob("*.mp4")) if p.name != "dummy.mp4"]
-    if not all_mp4s:
-        all_mp4s = list(videos_dir.glob("*.mp4"))
-
-    if not all_mp4s:
-        raise FileNotFoundError(f"input/videos/ に .mp4 ファイルがありません")
-
-    idx = date.today().weekday() % len(all_mp4s)
-    return all_mp4s[idx]
+    # 共通フォルダから選ぶ
+    files = _collect(videos_dir)
+    if not files:
+        raise FileNotFoundError(
+            "input/videos/ に素材ファイルがありません。"
+            "動画(.mp4/.mov)または写真(.jpg/.png)を入れてください。"
+        )
+    return files[date.today().weekday() % len(files)]
 
 
 def _pick_bgm() -> Path | None:
@@ -156,7 +177,8 @@ def generate_for_account(account: str, dry_run: bool = False) -> dict:
     """1アカウント分の動画を生成して結果を返す"""
     today_weekday = date.today().weekday()
     today_str = date.today().strftime("%Y-%m-%d")
-    topics = DAILY_TOPICS.get(account, [])
+    daily_topics = _load_daily_topics()
+    topics = daily_topics.get(account, [])
     if not topics:
         return {"account": account, "status": "skip", "reason": "トピック未設定"}
 
