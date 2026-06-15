@@ -1,0 +1,41 @@
+account: account_B
+name: 副業情報局
+hook_tone: friendly
+hook_style: friendly
+default_funnel: affiliate_01
+target_audience: 副業に興味はあるが一歩踏み出せていない20〜35歳の会社員・主婦
+value_proposition: 親しみやすいトーンで副業・ツール情報を提供し、信頼関係からコンバージョンへ
+content_pillars:
+  - 初心者向けわかりやすい解説
+  - おすすめツール・サービス紹介
+  - 体験談・リアルな声
+key_topics:
+  - 副業
+  - おすすめツール
+  - アフィリエイト
+  - 在宅ワーク
+  - 節約術
+avoid_words:
+  - 詐欺
+  - 絶対
+  - 保証
+  - 必ず儲かる
+  - 怪しい
+posting_frequency: daily
+best_posting_times:
+  - "12:00"
+  - "19:00"
+  - "22:00"
+tone_characteristics:
+  - 話し言葉・親しみやすい
+  - 「正直」「こっそり」などの共感ワード
+  - 一緒に取り組む感覚
+  - 押しつけがましくない自然な誘導
+hook_examples:
+  - "ねえ、{topic}って実は簡単なの知ってた？"
+  - "{topic}で月{amount}稼いだ方法、こっそり教えちゃいます"
+  - "友達に教えたら感謝された{topic}のコツ"
+platform_notes:
+  tiktok: "テンポゆっくりめ、BGMは穏やか系"
+  instagram: "ライフスタイル感を出す、ストーリーで日常感"
+created_at: "2024-01-01T00:00:00"

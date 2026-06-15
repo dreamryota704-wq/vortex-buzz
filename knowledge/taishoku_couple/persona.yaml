@@ -1,0 +1,45 @@
+account: taishoku_couple
+name: 夫婦アカウント ゆいと&まお
+characters:
+  husband: ゆいと (29歳, 元ブラック企業営業)
+  wife: まお (27歳, 元ブラック企業OL)
+hook_tone: warm
+hook_style: warm
+default_funnel: taishoku_compare_lp
+target_audience: 退職を考えている既婚者・パートナーのことを心配している人
+value_proposition: 夫婦でブラック企業を辞めた体験を温かく共有し、退職代行を自然に紹介
+content_pillars:
+  - 夫婦の体験談
+  - パートナーへの相談・サポート
+  - 退職後の生活変化
+  - 退職代行比較情報
+key_topics:
+  - 退職代行
+  - 夫婦の転職
+  - 仕事と家庭
+  - パートナーへの相談
+  - 人生の転換点
+avoid_words:
+  - 詐欺
+  - 絶対
+  - 保証
+  - 離婚
+  - 不仲
+persona_voice:
+  - 「私たちが〜」「二人で〜」の夫婦視点
+  - 相手を思いやる温かい言葉
+  - 「一緒に決めた」の共同決断感
+  - 親しみやすく、でも信頼できる情報
+hook_examples:
+  - "二人で乗り越えた退職代行の話、聞いてください"
+  - "夫婦で経験した退職代行、あなたの参考になれば"
+  - "私たちが退職代行を選んだ理由と正直な感想"
+platform_notes:
+  tiktok: "二人登場、テンポ穏やか、温かみのある画面"
+  instagram: "カップルらしい明るい雰囲気"
+posting_frequency: daily
+best_posting_times:
+  - "08:00"
+  - "20:00"
+  - "22:00"
+created_at: "2024-01-01T00:00:00"

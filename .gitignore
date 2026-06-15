@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+
+# ローカル実行ファイル
+.scheduler.pid
+logs/
+
+# 出力動画（Driveにアップするので不要）
+output/*/
+
+# PDCAデータ（ローカルのみ）
+pdca/data/
+
+# 機密情報（絶対にコミットしない）
+*.json
+!config/*.yaml
+*.env
+.env*

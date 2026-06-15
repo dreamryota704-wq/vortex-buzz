@@ -1,0 +1,46 @@
+name: 毎日動画生成
+
+on:
+  schedule:
+    - cron: '0 20 * * *'  # 毎朝5:00 JST（= UTC 20:00）
+  workflow_dispatch:       # GitHub画面から手動実行も可能
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: コードを取得
+        uses: actions/checkout@v4
+
+      - name: ffmpeg をインストール
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y ffmpeg
+
+      - name: Python セットアップ
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: 依存パッケージをインストール
+        run: pip install -r requirements.txt google-auth google-auth-httplib2 google-api-python-client
+
+      - name: 動画を生成
+        run: python auto_daily.py
+
+      - name: Google Drive にアップロード
+        env:
+          GOOGLE_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
+          GOOGLE_DRIVE_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
+        run: python upload_to_drive.py
+
+      - name: 動画をバックアップ保存（7日間）
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: videos-${{ github.run_id }}
+          path: output/
+          retention-days: 7

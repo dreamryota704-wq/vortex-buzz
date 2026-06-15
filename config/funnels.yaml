@@ -1,0 +1,96 @@
+funnels:
+  fukugyo_lp:
+    name: 副業完全攻略マニュアル
+    type: content_sales
+    price: "¥9800"
+    base_url: "https://example.com/fukugyo"
+    description: 副業で月10万円を達成するための完全マニュアル
+    target_audience: 副業初心者〜中級者
+    key_benefits:
+      - 月10万円達成のロードマップ
+      - 初期費用ゼロで始められる方法
+      - スキルなしでもできる副業リスト
+
+  affiliate_01:
+    name: おすすめツールアフィリエイト
+    type: affiliate
+    commission: "30%"
+    base_url: "https://example.com/tools"
+    description: 副業・在宅ワークに役立つツールのアフィリエイト
+    target_audience: 副業希望者・フリーランス
+    key_benefits:
+      - 無料トライアルあり
+      - 月額プランで継続収入
+      - 実績ツールのみ厳選
+
+  taishoku_check_lp:
+    name: 明日仕事に行けない人向けLP
+    type: affiliate
+    commission: "成果報酬型"
+    base_url: "https://example.com/taishoku-check"
+    description: 退職を検討している人向けの無料相談LP
+    target_audience: 退職を考えている会社員
+    key_benefits:
+      - 無料相談24時間対応
+      - 即日対応可能
+      - 有給消化サポート付き
+
+  taishoku_boss_lp:
+    name: 上司が怖くて言えない人向けLP
+    type: affiliate
+    commission: "成果報酬型"
+    base_url: "https://example.com/taishoku-boss"
+    description: 上司への退職申し出が怖い人向け退職代行LP
+    target_audience: 上司や職場の人間関係で悩む会社員
+    key_benefits:
+      - 本人は一切連絡不要
+      - 会社との交渉代行
+      - 精神的負担ゼロ
+
+  taishoku_compare_lp:
+    name: 退職代行比較LP
+    type: affiliate
+    commission: "成果報酬型"
+    base_url: "https://example.com/taishoku-compare"
+    description: 退職代行サービスを比較・解説するLP
+    target_audience: 退職代行を検討している人
+    key_benefits:
+      - 主要サービスを客観的に比較
+      - 料金・サポート内容を一覧
+      - 失敗しない選び方を解説
+
+  taishoku_lawyer_lp:
+    name: 未払い・法律トラブル向けLP
+    type: affiliate
+    commission: "成果報酬型"
+    base_url: "https://example.com/taishoku-lawyer"
+    description: 未払い残業代・パワハラなど法的問題がある人向けLP
+    target_audience: 給与未払い・ハラスメント被害者
+    key_benefits:
+      - 弁護士監修のサービス
+      - 未払い残業代を取り戻せる可能性
+      - 初回相談無料
+
+  tenri_backend_lp:
+    name: 退職後の転職エージェントLP
+    type: affiliate
+    commission: "成果報酬型"
+    base_url: "https://example.com/tenri-backend"
+    description: 退職後の転職をサポートするエージェント紹介LP
+    target_audience: 退職後の転職活動中の人
+    key_benefits:
+      - 優良企業への非公開求人
+      - 転職サポート完全無料
+      - 年収アップ実績多数
+
+cta_rotation:
+  organic_ratio: 2
+  conversion_ratio: 1
+  organic_cta_pool:
+    - "👍 参考になったら保存して"
+    - "🔔 フォローして最新情報をゲット"
+    - "💬 あなたはどう思う？コメントで教えて"
+    - "📌 後で見返したいなら保存がおすすめ"
+  conversion_cta:
+    line1: "詳しくはプロフィールのリンクから👆"
+    line2: "無料で確認できます"

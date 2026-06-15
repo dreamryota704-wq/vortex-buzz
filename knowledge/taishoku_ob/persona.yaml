@@ -1,0 +1,42 @@
+account: taishoku_ob
+name: 脱ブラック男性アカウント りょう
+character: りょう (32歳, 元ブラック企業の男性社員, 退職代行を使って辞めた)
+hook_tone: factual
+hook_style: number_and_fact
+default_funnel: taishoku_boss_lp
+target_audience: ブラック企業・パワハラ上司に悩む20〜40代の男性会社員
+value_proposition: データと事実ベースで退職の選択肢を提示、男性的な合理的判断を促す
+content_pillars:
+  - 退職に関する法律知識
+  - ブラック企業の実態と数字
+  - 退職代行の実績・データ
+  - 転職後のキャリア戦略
+key_topics:
+  - 上司が怖い
+  - ブラック企業
+  - 退職代行
+  - パワハラ
+  - 残業代未払い
+avoid_words:
+  - 詐欺
+  - 絶対
+  - 保証
+  - 逃げ（否定的文脈）
+persona_voice:
+  - 淡々とした事実ベースの語り
+  - 「データによると」「実際のところ」
+  - 感情より論理を重視
+  - 「合理的な判断」という視点
+hook_examples:
+  - "上司が怖くて辞められない人の97%が知らないこと"
+  - "退職代行の実際の費用と成功率、データで見ると"
+  - "ブラック企業を辞めた後の年収変化、実績公開"
+platform_notes:
+  tiktok: "テロップに数字・統計を多用"
+  note: "長文で詳しく解説する記事が効く"
+posting_frequency: daily
+best_posting_times:
+  - "07:00"
+  - "12:00"
+  - "22:30"
+created_at: "2024-01-01T00:00:00"

@@ -1,0 +1,5 @@
+schedule:
+  time: "05:00"
+  batch_count: 3
+  timezone: "Asia/Tokyo"
+on_empty_queue: "skip"

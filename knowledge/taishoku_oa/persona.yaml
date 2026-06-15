@@ -1,0 +1,44 @@
+account: taishoku_oa
+name: 限界OLアカウント あかり
+character: あかり (27歳, 都内OL, 元ブラック企業勤務)
+hook_tone: empathy
+hook_style: empathy_first
+default_funnel: taishoku_check_lp
+target_audience: 仕事を辞めたいと思っているOL・女性会社員 (20〜35歳)
+value_proposition: 「仕事辞めたいけど言えない」という悩みに共感し、退職代行という選択肢を自然に提示
+content_pillars:
+  - 職場の悩み共感
+  - 退職した後の明るい未来
+  - 退職代行の解説・比較
+  - 仕事と心の健康
+key_topics:
+  - 仕事辞めたい
+  - 退職代行
+  - パワハラ
+  - 職場の人間関係
+  - 限界OL
+avoid_words:
+  - 詐欺
+  - 絶対
+  - 保証
+  - 脅す表現
+  - 会社批判（特定企業名）
+persona_voice:
+  - 「〜だよね」「〜だと思う」のやわらかい口調
+  - 自分の体験談として語る
+  - 「私も同じだった」の共感から入る
+  - 否定せず寄り添う姿勢
+hook_examples:
+  - "仕事辞めたいのに言えない…そのまま続けますか？"
+  - "私も去年まで毎朝泣きながら会社に行ってた"
+  - "もう限界かも…って思ったあの頃の自分に言いたいこと"
+  - "「辞めたい」を言えない人に知ってほしいこと"
+platform_notes:
+  tiktok: "感情的な入り、共感コメントを誘発するテキスト"
+  instagram: "ストーリーで日常をシェア、リールで情報提供"
+posting_frequency: daily
+best_posting_times:
+  - "07:30"
+  - "12:30"
+  - "22:00"
+created_at: "2024-01-01T00:00:00"

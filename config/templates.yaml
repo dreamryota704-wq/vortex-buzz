@@ -1,0 +1,75 @@
+templates:
+  three_point:
+    name: 3ポイント構成
+    description: "フック → 3つのポイントを順番に紹介 → CTA"
+    weight: 1.0
+    status: active
+    structure:
+      - hook: "冒頭3秒でインパクトを与えるフック"
+      - point1: "最初のポイント（数字・実績を含める）"
+      - point2: "2つ目のポイント（具体的な方法）"
+      - point3: "3つ目のポイント（行動への橋渡し）"
+      - cta: "プロフィールリンクへの誘導"
+    estimated_duration: 15
+    tags:
+      - educational
+      - list_format
+      - evergreen
+
+  problem_solution:
+    name: 問題→解決
+    description: "共感できる問題提起 → 解決策の提示 → 行動CTA"
+    weight: 1.0
+    status: active
+    structure:
+      - hook: "視聴者が感じている悩みを代弁"
+      - problem: "問題の深掘り・共感ポイント"
+      - solution: "具体的な解決策"
+      - result: "解決後の未来イメージ"
+      - cta: "今すぐ行動できる誘導"
+    estimated_duration: 15
+    tags:
+      - empathy
+      - solution_focused
+      - high_conversion
+
+  number_reveal:
+    name: 数字公開
+    description: "インパクトある数字を公開 → 理由説明 → 再現性のある方法"
+    weight: 1.0
+    status: active
+    structure:
+      - hook: "衝撃的な数字の公開"
+      - reveal: "その数字の内訳・根拠"
+      - method: "視聴者も再現できる方法"
+      - cta: "詳細を確認する誘導"
+    estimated_duration: 15
+    tags:
+      - curiosity
+      - social_proof
+      - high_engagement
+
+  before_after:
+    name: Before/After
+    description: "悩んでいた過去 → 転換点 → 現在の状態"
+    weight: 1.0
+    status: active
+    structure:
+      - hook: "変化前の状況を提示"
+      - before: "過去の苦しい状況の詳細"
+      - turning_point: "何がきっかけで変わったか"
+      - after: "現在の理想的な状態"
+      - cta: "同じ変化を体験する方法"
+    estimated_duration: 15
+    tags:
+      - storytelling
+      - transformation
+      - emotional
+
+optimization:
+  min_rpv_threshold: 0.5
+  deprecation_weeks: 2
+  weight_increase_factor: 1.3
+  weight_decrease_factor: 0.7
+  min_weight: 0.3
+  max_weight: 3.0
