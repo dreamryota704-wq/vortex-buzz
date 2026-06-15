@@ -30,9 +30,15 @@ FONTS_DIR = Path(__file__).parent.parent / "assets" / "fonts"
 DEFAULT_FONT_PATHS = [
     FONTS_DIR / "NotoSansJP-Bold.ttf",
     FONTS_DIR / "NotoSansJP-Regular.ttf",
+    # macOS
     "/System/Library/Fonts/ヒラギノ角ゴシック W6.ttc",
     "/System/Library/Fonts/Hiragino Sans GB.ttc",
+    # Ubuntu (GitHub Actions)
+    "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc",
+    "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
     "/usr/share/fonts/truetype/noto/NotoSansCJK-Bold.ttc",
+    "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
+    "/usr/share/fonts/noto-cjk/NotoSansCJK-Bold.ttc",
 ]
 
 
