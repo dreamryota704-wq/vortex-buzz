@@ -227,7 +227,7 @@ def main():
     today_str = date.today().strftime("%Y-%m-%d")
     logger.info(f"=== auto_daily 開始: {today_str} {'[TEST]' if args.test else ''} ===")
 
-    accounts = args.accounts or list(DAILY_TOPICS.keys())
+    accounts = args.accounts or list(_load_daily_topics().keys())
     results = []
 
     for account in accounts:
