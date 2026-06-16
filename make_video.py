@@ -231,11 +231,14 @@ def main(account, video, bgm, info, topic, funnel, platform, dry_run, verbose):
 
         # ⑦ Hook overlay (0–3s)
         click.echo("[make_video] ⑦ フックテキストオーバーレイ...")
-        hook_clip = create_hook_overlay(hook_text, duration=3.0, font_size=72)
+        solution = body_points[0] if body_points else None
+        hook_clip = create_hook_overlay(hook_text, duration=3.0, font_size=72,
+                                        solution_text=solution, topic=topic,
+                                        points_count=len(body_points))
 
         # ⑧ Body text overlay
         click.echo("[make_video] ⑧ ボディテキストオーバーレイ...")
-        body_clips = create_body_overlay(body_points, start_time=3.0, font_size=56, video_duration=video_duration)
+        body_clips = create_body_overlay(body_points, start_time=3.0, font_size=52, video_duration=video_duration)
 
         # ⑨ CTA overlay
         click.echo("[make_video] ⑨ CTAオーバーレイ...")
