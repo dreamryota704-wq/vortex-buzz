@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>今の会社にいる限り、年収は上がりません</title>
+  <meta name="description" content="転職で年収を上げた人が実際にやったこと。ロードマップ形式で全部話します。">
+
+  <meta property="og:title" content="今の会社にいる限り、年収は上がりません">
+  <meta property="og:description" content="転職で年収を上げた人が実際にやったこと。ロードマップ形式で全部話します。">
+  <meta property="og:type" content="website">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Kaku Gothic ProN',
+                   'Hiragino Sans', 'Yu Gothic', Meiryo, sans-serif;
+      color: #111;
+      background: #fff;
+      line-height: 1.75;
+      font-size: 16px;
+    }
+
+    .wrap { max-width: 680px; margin: 0 auto; padding: 0 20px; }
+    h1 { font-size: clamp(22px, 5.5vw, 38px); font-weight: 900; line-height: 1.25; }
+    h2 { font-size: clamp(19px, 4vw, 26px); font-weight: 800; line-height: 1.35; }
+    h3 { font-size: clamp(16px, 3vw, 20px); font-weight: 700; }
+    p  { font-size: clamp(14px, 2.5vw, 16px); }
+
+    :root {
+      --accent: #E85000;
+      --yellow: #FFD600;
+      --dark:   #0c0c0c;
+      --gray:   #F5F5F5;
+      --border: #E2E2E2;
+      --green:  #2DB552;
+    }
+
+    /* HERO */
+    .hero {
+      background: var(--dark);
+      padding: 52px 0 44px;
+      border-bottom: 5px solid var(--accent);
+    }
+    .hero-tag {
+      display: inline-block; background: var(--accent); color: #fff;
+      font-size: 11px; font-weight: 700; letter-spacing: .1em;
+      padding: 4px 12px; margin-bottom: 18px;
+    }
+    .hero h1 { color: #fff; }
+    .hero h1 em { color: var(--yellow); font-style: normal; }
+    .hero-lead {
+      color: #ccc; font-size: clamp(15px, 3vw, 18px); font-weight: 700;
+      margin-top: 20px; line-height: 1.75;
+    }
+    .hero-lead span { color: var(--yellow); }
+    .hero-sub { color: #888; font-size: 13px; margin-top: 14px; line-height: 1.9; }
+
+    /* SECTIONS */
+    .section { padding: 48px 0; }
+    .section-label {
+      font-size: 11px; font-weight: 700; letter-spacing: .12em;
+      color: var(--accent); margin-bottom: 10px; text-transform: uppercase;
+    }
+    .section-gray { background: var(--gray); }
+    .section-dark  { background: var(--dark); color: #fff; }
+
+    /* BOXES */
+    .alert {
+      background: #fff3ed; border-left: 4px solid var(--accent);
+      padding: 14px 18px; margin: 22px 0; font-size: 14px; line-height: 1.75;
+    }
+    .info-box {
+      background: #fffbe6; border-left: 4px solid #e6ac00;
+      padding: 14px 18px; margin: 22px 0; font-size: 14px; line-height: 1.75;
+    }
+
+    /* STAT */
+    .stat-row {
+      display: flex; gap: 16px; margin: 28px 0; flex-wrap: wrap;
+    }
+    .stat-card {
+      flex: 1; min-width: 140px; background: #fff; border: 1.5px solid var(--border);
+      border-radius: 10px; padding: 20px 18px; text-align: center;
+    }
+    .stat-num {
+      font-size: clamp(28px, 7vw, 42px); font-weight: 900; color: var(--accent);
+      line-height: 1.1;
+    }
+    .stat-unit { font-size: 14px; font-weight: 700; color: var(--accent); }
+    .stat-label { font-size: 12px; color: #777; margin-top: 6px; line-height: 1.5; }
+
+    /* REASON LIST */
+    .reason-item {
+      background: #fff; border: 1.5px solid var(--border);
+      border-radius: 8px; padding: 20px 22px; margin: 14px 0;
+    }
+    .reason-num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 24px; height: 24px; background: var(--accent); color: #fff;
+      font-size: 12px; font-weight: 900; border-radius: 50%;
+      margin-right: 8px; vertical-align: middle;
+    }
+    .reason-title { font-weight: 800; font-size: 16px; margin-bottom: 8px; }
+    .reason-body  { font-size: 14px; color: #555; line-height: 1.75; }
+
+    /* PERSONA */
+    .persona-box {
+      background: #fff; border: 2px solid var(--accent);
+      border-radius: 10px; padding: 22px 24px; margin: 16px 0;
+    }
+    .persona-tag {
+      display: inline-block; background: var(--accent); color: #fff;
+      font-size: 10px; font-weight: 700; padding: 2px 10px; margin-bottom: 10px;
+    }
+    .persona-name { font-size: 17px; font-weight: 800; margin-bottom: 10px; }
+    .persona-list { list-style: none; }
+    .persona-list li {
+      font-size: 14px; padding: 7px 0; border-bottom: 1px solid var(--border);
+      display: flex; align-items: flex-start; gap: 8px;
+    }
+    .persona-list li:last-child { border-bottom: none; }
+    .persona-list li::before { content: "→"; color: var(--accent); font-weight: 900; flex-shrink: 0; }
+
+    /* ROADMAP STEPS */
+    .roadmap { position: relative; padding: 10px 0; }
+    .roadmap-step {
+      display: flex; gap: 0; align-items: stretch; margin-bottom: 24px;
+    }
+    .roadmap-left {
+      display: flex; flex-direction: column; align-items: center; min-width: 44px;
+    }
+    .roadmap-num {
+      width: 44px; height: 44px; background: var(--accent); color: #fff;
+      font-weight: 900; font-size: 18px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .roadmap-line {
+      width: 2px; background: #ddd; flex: 1; min-height: 20px; margin: 4px 0;
+    }
+    .roadmap-step:last-child .roadmap-line { display: none; }
+    .roadmap-body {
+      flex: 1; background: #fff; border: 1.5px solid var(--border);
+      border-radius: 10px; padding: 18px 20px; margin-left: 14px;
+      margin-bottom: 0;
+    }
+    .roadmap-phase {
+      font-size: 10px; font-weight: 700; color: var(--accent);
+      letter-spacing: .1em; margin-bottom: 5px;
+    }
+    .roadmap-title { font-weight: 800; font-size: 17px; margin-bottom: 8px; }
+    .roadmap-desc  { font-size: 14px; color: #555; line-height: 1.75; }
+    .roadmap-tip {
+      background: #fff3ed; padding: 10px 14px; margin-top: 12px;
+      border-radius: 6px; font-size: 13px; color: #7a3300; line-height: 1.7;
+    }
+
+    /* NG LIST */
+    .ng-item {
+      display: flex; gap: 14px; padding: 18px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .ng-item:last-child { border-bottom: none; }
+    .ng-icon { font-size: 20px; min-width: 26px; margin-top: 2px; }
+    .ng-body { flex: 1; }
+    .ng-title { font-weight: 800; font-size: 15px; margin-bottom: 6px; }
+    .ng-desc  { font-size: 14px; color: #555; line-height: 1.7; }
+
+    /* SERVICE CARD */
+    .svc-card {
+      background: #fff; border: 2px solid var(--border);
+      border-radius: 12px; padding: 26px 24px; margin: 20px 0;
+    }
+    .svc-card.featured { border-color: var(--accent); }
+    .svc-tag {
+      display: inline-block; background: var(--accent); color: #fff;
+      font-size: 11px; font-weight: 700; padding: 3px 10px;
+      border-radius: 3px; margin-bottom: 10px;
+    }
+    .svc-name { font-size: 22px; font-weight: 900; margin: 6px 0 4px; }
+    .svc-desc { font-size: 14px; color: #777; margin-bottom: 16px; }
+    .feat { list-style: none; margin: 14px 0; }
+    .feat li {
+      padding: 9px 0; border-bottom: 1px solid var(--border);
+      font-size: 15px; display: flex; align-items: center; gap: 10px;
+    }
+    .feat li:last-child { border-bottom: none; }
+    .feat li::before { content: "✓"; color: var(--green); font-weight: 900; font-size: 15px; }
+
+    /* BUTTON */
+    .btn {
+      display: block; width: 100%; background: var(--accent); color: #fff;
+      text-decoration: none; text-align: center; font-size: 17px;
+      font-weight: 800; padding: 18px 24px; border-radius: 6px;
+      margin: 18px 0 6px; line-height: 1.4; letter-spacing: .02em;
+    }
+    .btn:hover { opacity: .9; }
+    .btn-note { text-align: center; font-size: 12px; color: #999; margin-bottom: 16px; }
+
+    /* FAQ */
+    .faq-item { border-bottom: 1px solid var(--border); padding: 18px 0; }
+    .faq-q {
+      font-weight: 700; font-size: 15px; display: flex;
+      gap: 10px; margin-bottom: 8px; align-items: flex-start;
+    }
+    .faq-q::before {
+      content: "Q"; background: var(--accent); color: #fff;
+      font-size: 12px; font-weight: 900; width: 22px; height: 22px;
+      border-radius: 50%; display: flex; align-items: center;
+      justify-content: center; flex-shrink: 0; margin-top: 1px;
+    }
+    .faq-a { font-size: 14px; color: #444; padding-left: 32px; line-height: 1.75; }
+
+    /* FOOTER */
+    footer {
+      background: #0c0c0c; color: #666; padding: 36px 20px;
+      font-size: 12px; text-align: center; line-height: 2;
+    }
+    footer a { color: #666; }
+
+    /* STICKY */
+    .sticky {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: rgba(255,255,255,.96); border-top: 1px solid var(--border);
+      padding: 10px 20px 18px; z-index: 999;
+    }
+    .sticky .btn { margin: 0; font-size: 15px; padding: 15px; }
+    @media (min-width: 680px) { .sticky { display: none; } }
+    .sticky-gap { height: 78px; }
+    @media (min-width: 680px) { .sticky-gap { display: none; } }
+
+    /* MISC */
+    .hl { background: var(--yellow); padding: 1px 3px; }
+    strong { font-weight: 800; }
+    hr.divider { border: none; border-top: 1px solid var(--border); margin: 30px 0; }
+
+    .url-placeholder {
+      background: #fffbcc; border: 2px dashed #f0c000;
+      padding: 2px 6px; font-weight: 700; color: #7a5500;
+      border-radius: 3px; font-size: 13px;
+    }
+
+    /* CHECKLIST */
+    .cl-item {
+      display: flex; align-items: flex-start; gap: 14px;
+      padding: 14px 0; border-bottom: 1px solid var(--border);
+    }
+    .cl-item:last-child { border-bottom: none; }
+    .cl-icon { font-size: 18px; min-width: 24px; margin-top: 2px; }
+    .cl-text  { flex: 1; font-size: 15px; }
+    .badge-orange {
+      display: inline-block; background: #fff0e6; color: var(--accent);
+      font-size: 10px; font-weight: 700; padding: 2px 7px;
+      border-radius: 3px; margin-left: 6px; vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+
+
+<!-- ============================================================
+     HERO
+     ============================================================ -->
+<div class="hero">
+  <div class="wrap">
+    <span class="hero-tag">年収アップ転職ロードマップ</span>
+    <h1>今の会社にいる限り、<br><em>年収は上がりません</em></h1>
+    <p class="hero-lead">
+      転職した人の平均年収アップ額は<span>+67万円</span>。<br>
+      でも、正しく動いた人とそうでない人では結果が全然違います。
+    </p>
+    <p class="hero-sub">
+      このページでは、年収アップ転職に成功した人が実際にやったことを<br>
+      ロードマップ形式で全部話します。
+    </p>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     INTRO
+     ============================================================ -->
+<div class="section">
+  <div class="wrap">
+    <p class="section-label">最初に確認してください</p>
+    <h2>あなたの会社、年収が上がらない理由を知っていますか？</h2>
+
+    <p style="margin-top:20px;">
+      「もう少し頑張れば昇給するかも」——そう思って何年も待っている人を、たくさん見てきました。
+      でも現実は違います。
+    </p>
+    <p style="margin-top:12px;">
+      <strong>年収は会社の給与テーブルで決まります。</strong>
+      あなたがどれだけ頑張っても、会社の仕組みの上限を超えることはできない。
+      それが年収が上がらない人の本質的な理由です。
+    </p>
+
+    <div class="alert">
+      ⚠️ 頑張り続けることと、年収が上がることは、別の話です。
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="stat-num">67<span class="stat-unit">万</span></div>
+        <div class="stat-label">転職者の平均<br>年収アップ額</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">3<span class="stat-unit">年</span></div>
+        <div class="stat-label">同じ会社にいると<br>市場価値が下がり始める</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">30<span class="stat-unit">代</span></div>
+        <div class="stat-label">年収アップ転職で<br>最も成功率が高い年代</div>
+      </div>
+    </div>
+
+    <p style="font-size:12px;color:#999;margin-top:-14px;">※ 数値は一般的な転職市場の傾向を示すものです</p>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     年収が上がらない3つの構造的理由
+     ============================================================ -->
+<div class="section section-gray">
+  <div class="wrap">
+    <p class="section-label">なぜ上がらないのか</p>
+    <h2>「頑張っても年収が上がらない」3つの理由</h2>
+
+    <div style="margin-top:24px;">
+      <div class="reason-item">
+        <div class="reason-title">
+          <span class="reason-num">1</span>給与テーブルが固定されている
+        </div>
+        <div class="reason-body">
+          多くの日本企業には昇給の上限があります。入社時の等級・職種によって
+          上がる額が決まっており、どれだけパフォーマンスを出しても
+          テーブルの上限を超えることはできません。
+          <strong>同じ会社にいる限り、年収の天井は変わらない。</strong>
+        </div>
+      </div>
+
+      <div class="reason-item">
+        <div class="reason-title">
+          <span class="reason-num">2</span>スキルが社内の評価軸でしか測られない
+        </div>
+        <div class="reason-body">
+          社内では「できて当たり前」と思われているスキルが、
+          転職市場では高く評価されることは珍しくない。
+          でも今の会社にいる限り、その市場価値を知ることすらできません。
+          <strong>自分の値段を知るのは、外に出てみて初めてわかります。</strong>
+        </div>
+      </div>
+
+      <div class="reason-item">
+        <div class="reason-title">
+          <span class="reason-num">3</span>年功序列の文化が残っている
+        </div>
+        <div class="reason-body">
+          「若いうちは仕方ない」という文化がある会社では、
+          成果を出しても年収は上がりにくい。
+          転職市場は成果で評価される会社も多く、
+          同じスキルでも職場を変えるだけで年収が大きく変わります。
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     年収アップ転職が成功する人のパターン
+     ============================================================ -->
+<div class="section">
+  <div class="wrap">
+    <p class="section-label">成功する人</p>
+    <h2>年収アップ転職に成功するのは、こういう人です</h2>
+    <p style="margin-top:12px;color:#555;font-size:14px;">
+      スキルや学歴より、<strong>動き方の違い</strong>の方が結果に直結します。
+    </p>
+
+    <div style="margin-top:24px;">
+      <div class="persona-box">
+        <span class="persona-tag">成功パターン</span>
+        <div class="persona-name">年収を上げるために正しく動いた人</div>
+        <ul class="persona-list">
+          <li>転職前に「自分の市場価値」を確認してから動いた</li>
+          <li>転職エージェントを使い、年収交渉を任せた</li>
+          <li>職務経歴書に「数字で出せる実績」を書いた</li>
+          <li>複数社の内定を同時に取り、最終的に交渉で上積みした</li>
+          <li>「とりあえず転職」ではなく「年収アップ」を目的にして動いた</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="info-box">
+      💡 年収交渉は自分でやるより、エージェントに任せた方が通りやすい。
+      自分では言いにくい金額を代わりに交渉してくれるのがエージェントの最大のメリットです。
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     年収アップロードマップ
+     ============================================================ -->
+<div class="section section-gray">
+  <div class="wrap">
+    <p class="section-label">ロードマップ</p>
+    <h2>年収アップ転職、正しい進め方</h2>
+    <p style="margin-top:12px;color:#555;font-size:14px;">
+      早い人で2〜3ヶ月、平均的には3〜5ヶ月で内定が出ます。
+    </p>
+
+    <div class="roadmap" style="margin-top:30px;">
+
+      <div class="roadmap-step">
+        <div class="roadmap-left">
+          <div class="roadmap-num">1</div>
+          <div class="roadmap-line"></div>
+        </div>
+        <div class="roadmap-body">
+          <div class="roadmap-phase">WEEK 1〜2</div>
+          <div class="roadmap-title">自分の市場価値を確認する</div>
+          <div class="roadmap-desc">
+            転職エージェントに登録して初回面談を受けます。
+            今のスキルでどのくらいの年収が狙えるか、まずプロに聞くのが一番早い。
+            「転職するかどうか迷っている」段階でも全く問題ありません。
+          </div>
+          <div class="roadmap-tip">
+            💡 エージェントに年収の希望を正直に伝えること。
+            「高すぎるかな」と遠慮すると、低い求人ばかり紹介されます。
+          </div>
+        </div>
+      </div>
+
+      <div class="roadmap-step">
+        <div class="roadmap-left">
+          <div class="roadmap-num">2</div>
+          <div class="roadmap-line"></div>
+        </div>
+        <div class="roadmap-body">
+          <div class="roadmap-phase">WEEK 2〜3</div>
+          <div class="roadmap-title">職務経歴書を「数字」で書き直す</div>
+          <div class="roadmap-desc">
+            「営業として頑張りました」ではなく「前年比130%・月次売上1,800万を達成」のように、
+            実績を数字で表現します。ここが書類選考の通過率に直結します。
+            エージェントと一緒に作り込んでください。
+          </div>
+          <div class="roadmap-tip">
+            💡 数字がない業務でも「改善率」「担当規模」「チーム人数」など
+            何かしら数字にできるはず。エージェントに相談しながら掘り起こす。
+          </div>
+        </div>
+      </div>
+
+      <div class="roadmap-step">
+        <div class="roadmap-left">
+          <div class="roadmap-num">3</div>
+          <div class="roadmap-line"></div>
+        </div>
+        <div class="roadmap-body">
+          <div class="roadmap-phase">WEEK 3〜6</div>
+          <div class="roadmap-title">複数社に同時応募して「選択肢」を作る</div>
+          <div class="roadmap-desc">
+            1社ずつ順番に応募すると時間がかかる上、選択肢がなくなります。
+            3〜5社に同時応募して、複数の面接を並行して進めてください。
+            選択肢があることで、交渉力も上がります。
+          </div>
+          <div class="roadmap-tip">
+            💡 志望度の低い会社も「練習」として受けると、面接の精度が上がる。
+            落ちても何も失いません。
+          </div>
+        </div>
+      </div>
+
+      <div class="roadmap-step">
+        <div class="roadmap-left">
+          <div class="roadmap-num">4</div>
+          <div class="roadmap-line"></div>
+        </div>
+        <div class="roadmap-body">
+          <div class="roadmap-phase">内定後</div>
+          <div class="roadmap-title">エージェントに年収交渉を任せる</div>
+          <div class="roadmap-desc">
+            内定が出た後が一番重要です。エージェントに「年収をもう少し上げてほしい」と
+            伝えれば、企業側に交渉してくれます。自分では言いにくい金額でも、
+            エージェントを通すと通りやすい。<strong>最低でも一度は交渉するべきです。</strong>
+          </div>
+          <div class="roadmap-tip">
+            💡 複数内定がある場合、「他社からも内定が出ている」という事実を伝えると
+            年収の上積みが通りやすくなります。
+          </div>
+        </div>
+      </div>
+
+      <div class="roadmap-step">
+        <div class="roadmap-left">
+          <div class="roadmap-num">5</div>
+        </div>
+        <div class="roadmap-body">
+          <div class="roadmap-phase">入社後</div>
+          <div class="roadmap-title">入社後3ヶ月で「結果」を出す準備をする</div>
+          <div class="roadmap-desc">
+            年収アップ転職の本当のゴールは入社後です。
+            試用期間中に成果を出せると、昇給・昇格のスピードが大きく変わります。
+            入社前から「最初の3ヶ月に何をするか」を決めておきましょう。
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     やってはいけないこと
+     ============================================================ -->
+<div class="section">
+  <div class="wrap">
+    <p class="section-label">注意</p>
+    <h2>年収アップ転職でやってはいけないこと</h2>
+
+    <div style="margin-top:24px;">
+      <div class="ng-item">
+        <div class="ng-icon">✕</div>
+        <div class="ng-body">
+          <div class="ng-title">年収を下げてでも「とりあえず転職」する</div>
+          <div class="ng-desc">
+            「今の環境から逃げたい」という気持ちはわかりますが、年収を下げての転職は
+            後悔しやすい。まず現職で年収が上がらない理由を整理してから動いてください。
+          </div>
+        </div>
+      </div>
+      <div class="ng-item">
+        <div class="ng-icon">✕</div>
+        <div class="ng-body">
+          <div class="ng-title">退職してから転職活動を始める</div>
+          <div class="ng-desc">
+            在職中の方が採用市場での評価が高い。退職後は経済的プレッシャーもあり、
+            年収交渉で妥協しやすくなります。辞める前に転職先を決めてください。
+          </div>
+        </div>
+      </div>
+      <div class="ng-item">
+        <div class="ng-icon">✕</div>
+        <div class="ng-body">
+          <div class="ng-title">年収希望を正直に言わない</div>
+          <div class="ng-desc">
+            「高すぎるかな」と遠慮して低い年収希望を伝えると、その金額が基準になります。
+            希望年収は現実的な上限値で伝える。交渉するのはその後です。
+          </div>
+        </div>
+      </div>
+      <div class="ng-item">
+        <div class="ng-icon">✕</div>
+        <div class="ng-body">
+          <div class="ng-title">最初の内定をすぐに承諾する</div>
+          <div class="ng-desc">
+            1社目の内定は交渉のスタートラインです。他社を同時並行で進めながら、
+            最終的に複数の内定を比較して選ぶのが年収最大化の基本戦略です。
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     SERVICE（アフィリエイト先）
+     ============================================================ -->
+<div class="section section-gray">
+  <div class="wrap">
+    <p class="section-label">おすすめ</p>
+    <h2>年収アップ転職に強いエージェント</h2>
+    <p style="margin-top:12px;color:#555;font-size:14px;">
+      エージェントの質が年収交渉の成否を左右します。
+      年収アップ実績が多いエージェントを選んでください。
+    </p>
+
+    <hr class="divider">
+
+    <!-- ==================================================
+         ★★★ メインサービスカード ★★★
+         href と内容をアフィリエイト先に合わせて書き換えてください
+         ================================================== -->
+    <div class="svc-card featured">
+      <span class="svc-tag">年収アップ実績No.1</span>
+
+      <!-- ★ エージェント名 -->
+      <div class="svc-name">
+        <span class="url-placeholder">← エージェント名を入れる</span>
+      </div>
+
+      <!-- ★ 一言説明 -->
+      <div class="svc-desc">
+        <span class="url-placeholder">← 例：年収交渉の成功率が高い / ハイクラス向け / 平均年収アップ◯◯万円</span>
+      </div>
+
+      <!-- ★ 特徴（アフィリエイト先に合わせて書き換える） -->
+      <ul class="feat">
+        <li>年収交渉を担当者が代行してくれる</li>
+        <li>年収アップを目的にした転職に特化した求人を保有</li>
+        <li>面接後のフィードバックが具体的で次につながる</li>
+        <li>職務経歴書の添削・ブラッシュアップを徹底サポート</li>
+        <li>利用料は完全無料</li>
+      </ul>
+
+      <!-- ★★★ CTAボタン：hrefにアフィリエイトURLを入れる ★★★ -->
+      <a href="【アフィリエイトURL】"
+         target="_blank"
+         rel="noopener sponsored"
+         class="btn">
+        無料で登録して年収アップを狙う →
+      </a>
+      <p class="btn-note">※ 登録・利用は完全無料です</p>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ============================================================
+     FAQ
+     ============================================================ -->
+<div class="section">
+  <div class="wrap">
+    <p class="section-label">よくある質問</p>
+    <h2>年収アップ転職の疑問</h2>
+
+    <div style="margin-top:26px;">
+      <div class="faq-item">
+        <div class="faq-q">今のスキルで本当に年収アップできますか？</div>
+        <p class="faq-a">
+          多くの場合、できます。同じスキルでも、会社が変わるだけで年収が上がるケースは珍しくないです。
+          まず転職エージェントに相談して「自分の市場価値」を確認することをおすすめします。
+        </p>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">年収交渉って自分でするものですか？</div>
+        <p class="faq-a">
+          エージェントに任せてください。自分で「年収を上げてほしい」と言うのは難しいですが、
+          エージェントが間に入ると通りやすくなります。これがエージェントを使う最大の理由の一つです。
+        </p>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">転職回数が多いと不利ですか？</div>
+        <p class="faq-a">
+          業界や職種によります。IT・営業・コンサルなど成果で評価される業界では
+          転職回数よりも実績の方が重視されます。エージェントに相談すれば
+          自分の状況に合った求人を教えてもらえます。
+        </p>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">30代・40代でも年収アップできますか？</div>
+        <p class="faq-a">
+          できます。むしろ30代はマネジメント経験と専門スキルが両立してくる時期で、
+          年収アップ転職が最もしやすい年代の一つです。
+          ただし、動くなら早い方がいい。年齢で損するのは50代以降です。
+        </p>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">在職中でも転職活動できますか？</div>
+        <p class="faq-a">
+          できます。むしろ在職中に動くべきです。退職後は経済的なプレッシャーで
+          年収交渉に妥協しやすくなります。
+          エージェントは土日・夜間の面談にも対応しています。
+        </p>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">転職活動はどのくらい時間がかかりますか？</div>
+        <p class="faq-a">
+          平均3〜5ヶ月です。ただし動き出しが早ければ早いほど選択肢が広い。
+          「転職するかどうか迷っている」段階でエージェントに登録しておくのが
+          結果的に一番早い動き方になります。
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     FINAL CTA
+     ============================================================ -->
+<div class="section section-dark" style="padding:56px 0;">
+  <div class="wrap" style="text-align:center;">
+    <p style="color:#777;font-size:13px;margin-bottom:14px;">このページを読んだあなたへ</p>
+    <h2 style="color:#fff;margin-bottom:18px;">
+      迷っている時間が、<br>一番もったいないです
+    </h2>
+    <p style="color:#aaa;font-size:14px;margin-bottom:30px;line-height:1.9;">
+      転職市場は今が動きやすい時期です。<br>
+      登録は5分、最初の面談だけでも受けてみてください。<br>
+      それだけで自分の市場価値がわかります。
+    </p>
+
+    <!-- ★★★ 最終CTAボタン ★★★ -->
+    <a href="【アフィリエイトURL】"
+       target="_blank"
+       rel="noopener sponsored"
+       class="btn"
+       style="max-width:460px;margin:0 auto;font-size:18px;padding:20px 32px;border-radius:8px;">
+      無料で登録して年収アップを狙う →
+    </a>
+    <p style="color:#555;font-size:12px;margin-top:12px;">※ 完全無料・しつこい電話はありません</p>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     FOOTER
+     ============================================================ -->
+<footer>
+  <div class="wrap">
+    <p>
+      運営: <span class="url-placeholder">← アカウント名 or 運営者名</span><br>
+      お問い合わせ: <span class="url-placeholder">← SNSのDMリンク or メールアドレス</span>
+    </p>
+    <p style="margin-top:14px;">
+      <a href="#">プライバシーポリシー</a>　|　<a href="#">免責事項</a>
+    </p>
+    <p style="margin-top:14px;">
+      ※ このページにはアフィリエイトリンクが含まれています。<br>
+      サービスへの申し込みが発生した場合、当サイトに報酬が支払われることがあります。<br>
+      掲載情報は執筆時点のものです。最新情報は各サービス公式サイトをご確認ください。
+    </p>
+    <p style="margin-top:14px;">© 2025 <span class="url-placeholder">← サイト名</span> All Rights Reserved.</p>
+  </div>
+</footer>
+
+
+<!-- ============================================================
+     STICKY CTA
+     ============================================================ -->
+<div class="sticky">
+  <!-- ★★★ スティッキーボタン ★★★ -->
+  <a href="【アフィリエイトURL】"
+     target="_blank"
+     rel="noopener sponsored"
+     class="btn">
+    無料で登録して年収アップを狙う →
+  </a>
+</div>
+
+<div class="sticky-gap"></div>
+
+</body>
+</html>
