@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>あなたの会社、ブラック企業チェック15項目</title>
+  <meta name="description" content="もしかしてブラック企業？15の項目でチェックしてみてください。8個以上当てはまったら今すぐ動いた方がいい。">
+
+  <!-- ================================================
+       OGP設定（SNSシェア用）
+       ★ 必要に応じて書き換えてください
+       ================================================ -->
+  <meta property="og:title" content="あなたの会社、ブラック企業チェック15項目">
+  <meta property="og:description" content="8個以上当てはまったら今すぐ動いた方がいい。">
+  <meta property="og:type" content="website">
+  <!-- <meta property="og:image" content="【OGP画像のURL】"> -->
+  <!-- <meta property="og:url" content="【このページのURL】"> -->
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Kaku Gothic ProN',
+                   'Hiragino Sans', 'Yu Gothic', Meiryo, sans-serif;
+      color: #111;
+      background: #fff;
+      line-height: 1.75;
+      font-size: 16px;
+    }
+
+    .wrap { max-width: 680px; margin: 0 auto; padding: 0 20px; }
+
+    h1 { font-size: clamp(22px, 5.5vw, 38px); font-weight: 900; line-height: 1.25; }
+    h2 { font-size: clamp(19px, 4vw, 26px); font-weight: 800; line-height: 1.35; }
+    h3 { font-size: clamp(16px, 3vw, 20px); font-weight: 700; }
+    p  { font-size: clamp(14px, 2.5vw, 16px); }
+
+    :root {
+      --red:    #D72424;
+      --yellow: #FFD600;
+      --dark:   #0c0c0c;
+      --gray:   #F5F5F5;
+      --border: #E2E2E2;
+      --green:  #2DB552;
+    }
+
+    /* ==============================
+       HERO
+       ============================== */
+    .hero {
+      background: var(--dark);
+      padding: 52px 0 44px;
+      border-bottom: 5px solid var(--red);
+    }
+    .hero-tag {
+      display: inline-block;
+      background: var(--red);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      padding: 4px 12px;
+      margin-bottom: 18px;
+    }
+    .hero h1 { color: #fff; }
+    .hero h1 em { color: var(--yellow); font-style: normal; }
+    .hero-sub {
+      color: #aaa;
+      font-size: 14px;
+      margin-top: 16px;
+      line-height: 1.8;
+    }
+
+    /* ==============================
+       SECTION BASE
+       ============================== */
+    .section { padding: 48px 0; }
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      color: var(--red);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+    .section-gray { background: var(--gray); }
+    .section-dark  { background: var(--dark); color: #fff; }
+
+    /* ==============================
+       ALERT / INFO BOXES
+       ============================== */
+    .alert {
+      background: #fff8e1;
+      border-left: 4px solid #f0a800;
+      padding: 14px 18px;
+      margin: 22px 0;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+    .warn-box {
+      background: #fff1f1;
+      border: 1.5px solid #f8c8c8;
+      border-radius: 8px;
+      padding: 20px 22px;
+      margin: 24px 0;
+    }
+    .warn-box-icon { font-size: 22px; margin-bottom: 8px; }
+
+    /* ==============================
+       CHECKLIST
+       ============================== */
+    .cl-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 15px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .cl-item:last-child { border-bottom: none; }
+    .cl-box {
+      width: 24px; height: 24px; min-width: 24px;
+      border: 2px solid #bbb;
+      border-radius: 4px;
+      margin-top: 2px;
+    }
+    .cl-text { flex: 1; font-size: 15px; }
+    .badge {
+      display: inline-block;
+      background: #ffecec;
+      color: var(--red);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 3px;
+      margin-left: 6px;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    /* ==============================
+       SCORE CARDS
+       ============================== */
+    .score-card {
+      border-radius: 8px;
+      padding: 18px 22px;
+      margin: 14px 0;
+    }
+    .score-card.ok   { background: #0d2b1a; border-left: 4px solid var(--green); }
+    .score-card.mid  { background: #2b1e0d; border-left: 4px solid #FF9500; }
+    .score-card.ng   { background: #2b0d0d; border-left: 4px solid var(--red); }
+    .score-range { font-size: 12px; font-weight: 700; opacity: .65; letter-spacing: .05em; }
+    .score-verdict   { font-size: 20px; font-weight: 900; margin: 5px 0 8px; }
+    .score-card.ok  .score-verdict { color: var(--green); }
+    .score-card.mid .score-verdict { color: #FF9500; }
+    .score-card.ng  .score-verdict { color: var(--red); }
+    .score-card p { font-size: 13px; color: #bbb; line-height: 1.7; }
+
+    /* ==============================
+       HIGHLIGHT
+       ============================== */
+    .hl { background: var(--yellow); padding: 1px 3px; }
+    strong { font-weight: 800; }
+    hr.divider { border: none; border-top: 1px solid var(--border); margin: 30px 0; }
+
+    /* ==============================
+       SERVICE CARD
+       ============================== */
+    .svc-card {
+      background: #fff;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 26px 24px;
+      margin: 24px 0;
+    }
+    .svc-tag {
+      display: inline-block;
+      background: var(--red);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 3px;
+      margin-bottom: 10px;
+    }
+    .svc-name {
+      font-size: 22px;
+      font-weight: 900;
+      margin: 6px 0 4px;
+    }
+    .svc-desc { font-size: 14px; color: #777; margin-bottom: 16px; }
+    .feat { list-style: none; margin: 14px 0; }
+    .feat li {
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .feat li:last-child { border-bottom: none; }
+    .feat li::before { content: "✓"; color: var(--green); font-weight: 900; font-size: 15px; }
+
+    /* ==============================
+       CTA BUTTON
+       ============================== */
+    .btn {
+      display: block;
+      width: 100%;
+      background: var(--red);
+      color: #fff;
+      text-decoration: none;
+      text-align: center;
+      font-size: 17px;
+      font-weight: 800;
+      padding: 18px 24px;
+      border-radius: 6px;
+      margin: 18px 0 6px;
+      line-height: 1.4;
+      letter-spacing: .02em;
+    }
+    .btn:hover { opacity: .9; }
+    .btn-note { text-align: center; font-size: 12px; color: #999; margin-bottom: 16px; }
+
+    /* ==============================
+       FAQ
+       ============================== */
+    .faq-item { border-bottom: 1px solid var(--border); padding: 18px 0; }
+    .faq-q {
+      font-weight: 700;
+      font-size: 15px;
+      display: flex;
+      gap: 10px;
+      margin-bottom: 8px;
+      align-items: flex-start;
+    }
+    .faq-q::before {
+      content: "Q";
+      background: var(--red);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 900;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .faq-a { font-size: 14px; color: #444; padding-left: 32px; line-height: 1.75; }
+
+    /* ==============================
+       FOOTER
+       ============================== */
+    footer {
+      background: #0c0c0c;
+      color: #666;
+      padding: 36px 20px;
+      font-size: 12px;
+      text-align: center;
+      line-height: 2;
+    }
+    footer a { color: #666; }
+
+    /* ==============================
+       STICKY CTA (スマホのみ)
+       ============================== */
+    .sticky {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: rgba(255,255,255,.96);
+      border-top: 1px solid var(--border);
+      padding: 10px 20px 18px;
+      z-index: 999;
+    }
+    .sticky .btn { margin: 0; font-size: 15px; padding: 15px; }
+    @media (min-width: 680px) { .sticky { display: none; } }
+    .sticky-gap { height: 78px; }
+    @media (min-width: 680px) { .sticky-gap { display: none; } }
+
+    /* ==============================
+       URL プレースホルダー（目立つように）
+       ============================== */
+    .url-placeholder {
+      background: #fffbcc;
+      border: 2px dashed #f0c000;
+      padding: 2px 6px;
+      font-weight: 700;
+      color: #7a5500;
+      border-radius: 3px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+
+
+<!-- ============================================================
+     HERO
+     ============================================================ -->
+<div class="hero">
+  <div class="wrap">
+    <span class="hero-tag">ブラック企業チェックリスト</span>
+    <h1>あなたの会社、<br><em>15項目</em>でチェックしてみてください</h1>
+    <p class="hero-sub">
+      「ブラックかどうかわからない」という人ほど、<br>
+      実は相当ヤバい状況にいることが多いです。<br>
+      まずチェックしてみてください。
+    </p>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     INTRO
+     ============================================================ -->
+<div class="section">
+  <div class="wrap">
+    <p class="section-label">読んでください</p>
+    <h2>残業当たり前・有給が取れない、<br>でも「自分が弱いだけ」だと思ってませんか</h2>
+
+    <p style="margin-top:20px;">正直に言います。</p>
+
+    <p style="margin-top:12px;">
+      ブラック企業に長くいると、おかしいことが<strong>「普通」に見えてきます</strong>。
+      上司に怒鳴られても「社会人なら当然」、月80時間の残業でも「みんなそうだから仕方ない」、
+      有給が取れなくても「忙しい時期だし」。
+    </p>
+
+    <p style="margin-top:12px;">
+      でも、それは普通じゃない。
+    </p>
+
+    <p style="margin-top:12px;">
+      下のチェックリストをやってみてください。
+      <strong>8個以上当てはまったら、今すぐ動かないと後悔することになります。</strong>
+    </p>
+
+    <div class="alert">
+      ⚠️ 「どこの会社もこんなもんでしょ」と思っているなら、それ自体がブラック企業に慣らされているサインです。
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     CHECKLIST
+     ============================================================ -->
+<div class="section section-gray">
+  <div class="wrap">
+    <p class="section-label">チェックリスト</p>
+    <h2>当てはまるものを確認してください</h2>
+    <p style="color:#888;font-size:13px;margin-top:8px;margin-bottom:26px;">全15項目　／　8個以上 → 今すぐ行動</p>
+
+    <div class="cl-item">
+      <div class="cl-box"></div>
+      <div class="cl-text">
+        <strong>残業代が出ない、または「みなし残業」で実態と合っていない</strong>
+        <span class="badge">違法の可能性</span>
+      </div>
+    </div>
+
+    <div class="cl-item">
+      <div class="cl-box"></div>
+      <div class="cl-text">
+        有給休暇を申請しにくい空気がある、または実際に却下されたことがある
+      </div>
+    </div>
+
+    <div class="cl-item">
+      <div class="cl-box"></div>
+      <div class="cl-text">
+        <strong>休日や深夜に仕事の連絡が来て、対応が暗黙で求められている</strong>
+      </div>
+    </div>
+
+    <div class="cl-item">
+      <div class="cl-box"></div>
+      <div class="cl-text">
+        上司に怒鳴られる、侮辱的な発言をされたことがある
+        <span class="badge">パワハラ</span>
+      </div>
+    </div>
+
+    <div class="cl-item">
+      <div class="cl-box"></div>
+      <div class="cl-text">
+        <strong>求人票の内容と実際の仕事・給与・残業時間が全然違った</strong>
+        <span class="badge">虚偽記載</span>
+      </div>
+    </div>
+
+    <div class="cl-item">
+      <div class="cl-box"></div>
+      <div class="cl-text">
+        「辞めたい」と伝えたら引き止められた、または「辞めたら訴える」などと言われた
+      </div>
+    </div>
+
+    <div class="cl-item">
+      <div class="cl-box"></div>
+      <div class="cl-text">
+        <strong>社員の入れ替わりが激しく、毎月誰かが辞めている</strong>
+      </div>
+    </div>
+
+    <div class="cl-item">
+      <div class="cl-box"></div>
+      <div class="cl-text">
+        業務時間外・土日の研修・会議への参加が実質強制されている
+      </div>
+    </div>
+
+    <div class="cl-item">
+      <div class="cl-box"></div>
+      <div class="cl-text">
+        <strong>体調不良でも「休むな」という雰囲気があり、欠勤しにくい</strong>
+      </div>
+    </div>
+
+    <div class="cl-item">
+      <div class="cl-box"></div>
+      <div class="cl-text">
+        「やる気がないなら辞めろ」「お前には無理だ」など、精神的に追い詰める発言をされた
+        <span class="badge">パワハラ</span>
+      </div>
+    </div>
+
+    <div class="cl-item">
+      <div class="cl-box"></div>
+      <div class="cl-text">
+        <strong>ノルマ未達成の場合、全員の前で詰められる「詰め会議」がある</strong>
+      </div>
+    </div>
+
+    <div class="cl-item">
+      <div class="cl-box"></div>
+      <div class="cl-text">
+        社会保険（健康保険・厚生年金）の加入手続きをされていない、または曖昧
+        <span class="badge">違法の可能性</span>
+      </div>
+    </div>
+
+    <div class="cl-item">
+      <div class="cl-box"></div>
+      <div class="cl-text">
+        <strong>給与明細の内訳が不透明、または渡してもらえない</strong>
+      </div>
+    </div>
+
+    <div class="cl-item">
+      <div class="cl-box"></div>
+      <div class="cl-text">
+        上の指示が毎回変わり、何をやっても怒られる理不尽な状況が続いている
+      </div>
+    </div>
+
+    <div class="cl-item">
+      <div class="cl-box"></div>
+      <div class="cl-text">
+        <strong>この1ヶ月、「仕事に行きたくない」と思った日が週に3日以上ある</strong>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     SCORE
+     ============================================================ -->
+<div class="section section-dark">
+  <div class="wrap">
+    <p class="section-label" style="color:#666;">何個当てはまりましたか</p>
+    <h2 style="color:#fff;margin-bottom:24px;">あなたの結果</h2>
+
+    <div class="score-card ok">
+      <div class="score-range">0〜3個</div>
+      <div class="score-verdict">今のところ問題は少ない</div>
+      <p>ただし、感じている「なんか違う」という感覚は無視しないでください。職場環境は急に悪化することもあります。</p>
+    </div>
+
+    <div class="score-card mid">
+      <div class="score-range">4〜7個</div>
+      <div class="score-verdict">ブラック企業の可能性が高い</div>
+      <p>複数の問題が重なっている状態です。今は耐えられていても、時間が経つほど消耗します。一度状況を整理することをすすめます。</p>
+    </div>
+
+    <div class="score-card ng">
+      <div class="score-range">8個以上</div>
+      <div class="score-verdict">今すぐ動いてください</div>
+      <p>その環境にいる時間が長いほど、体も心も削られていきます。「もう少し頑張れば変わるかも」——ブラック企業ではその日は来ません。</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     TRUTH
+     ============================================================ -->
+<div class="section section-gray">
+  <div class="wrap">
+    <p class="section-label">正直に話します</p>
+    <h2>なぜブラック企業なのに辞められないのか</h2>
+
+    <p style="margin-top:18px;">理由は単純です。</p>
+
+    <p style="margin-top:12px;">
+      <strong>「辞めると言い出せない」「引き止められるのが怖い」「迷惑をかけたくない」「次が決まってから辞めたい」</strong>——
+      こういう理由で、本当はもう限界なのに居続けてしまう。
+    </p>
+
+    <p style="margin-top:12px;">
+      はっきり言います。
+    </p>
+
+    <p style="margin-top:12px;">
+      <span class="hl">あなたの会社への義理より、あなたの体と人生の方が圧倒的に大切です。</span>
+    </p>
+
+    <p style="margin-top:12px;">
+      消耗した状態で転職活動しても質が落ちる。体を壊してから動くと回復に何ヶ月もかかる。
+      ブラック企業にいた期間が長いほど、次のまともな職場に慣れるまでの時間も長くなる。
+    </p>
+
+    <p style="margin-top:12px;">
+      早ければ早いほどいい。それだけです。
+    </p>
+
+    <div class="warn-box">
+      <div class="warn-box-icon">🔴</div>
+      <strong>「退職を申し出ると何か言われそうで怖い」という人へ</strong>
+      <p style="margin-top:8px;font-size:14px;line-height:1.8;">
+        今は、会社に一切連絡しないまま退職できる方法があります。<br>
+        退職の意思を伝えるところから有給消化・書類の受け取りまで、全部代行してくれるサービスです。
+        直接言わなくていい。もう出社しなくていい。
+      </p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     SERVICE
+     ============================================================ -->
+<div class="section">
+  <div class="wrap">
+    <p class="section-label">解決策</p>
+    <h2>直接言わずに辞められる。<br>退職代行という選択肢</h2>
+
+    <p style="margin-top:18px;">
+      退職代行とは、あなたの代わりに会社への退職連絡・手続きを全部やってくれるサービスです。
+      申し込んだ翌日から出社しなくてOKのケースがほとんどで、<strong>即日対応が基本</strong>。
+    </p>
+
+    <p style="margin-top:12px;">
+      「こんなサービス使っていいの？」と思うかもしれないですが、<strong>退職は労働者の権利です。</strong>
+      退職代行を使うことに違法性は一切なく、むしろ精神的な消耗を最小限にして辞められる、現実的な方法です。
+    </p>
+
+    <hr class="divider">
+
+    <!-- ==================================================
+         ★★★ サービスカード ★★★
+         ここをアフィリエイト先のサービスに合わせて書き換えてください
+         ================================================== -->
+    <div class="svc-card">
+      <span class="svc-tag">おすすめ退職代行</span>
+
+      <!-- ★ サービス名 -->
+      <div class="svc-name">
+        <span class="url-placeholder">← サービス名を入れる</span>
+      </div>
+
+      <!-- ★ サービスの一言説明（例：弁護士監修 / 24時間対応 / 即日退職可） -->
+      <div class="svc-desc">
+        <span class="url-placeholder">← サービスの一言説明を入れる</span>
+      </div>
+
+      <!-- ★ 特徴リスト（アフィリエイト先のサービス内容に合わせて書き換える） -->
+      <ul class="feat">
+        <li>即日対応・当日退職も可能</li>
+        <li>会社に直接連絡しなくていい</li>
+        <li>有給消化・退職後の書類手続きもサポート</li>
+        <li>LINE・電話で24時間相談受付</li>
+        <li>退職できなかった場合の返金保証あり</li>
+      </ul>
+
+      <!-- ==================================================
+           ★★★ メインCTAボタン ★★★
+           href の「【アフィリエイトURL】」を実際のURLに書き換えてください
+           rel="noopener sponsored" はそのまま残してください（広告表記）
+           ================================================== -->
+      <a href="【アフィリエイトURL】"
+         target="_blank"
+         rel="noopener sponsored"
+         class="btn">
+        まず無料で相談してみる →
+      </a>
+      <p class="btn-note">※ 相談・見積もりは無料です</p>
+
+      <!-- ★ アフィリエイトURL確認用メモ（公開前に削除してください） -->
+      <!-- 現在のURL設定: <span class="url-placeholder">【アフィリエイトURL】← ここを書き換え</span> -->
+    </div>
+    <!-- / サービスカード -->
+
+    <!-- ==================================================
+         ★ 2つ目のサービスカード（オプション）
+         2つ目のアフィリエイト先がある場合はコメントアウトを外して使用
+         ================================================== -->
+    <!--
+    <div class="svc-card" style="border-color:#ddd;">
+      <span class="svc-tag" style="background:#444;">他のおすすめ</span>
+      <div class="svc-name">【2つ目のサービス名】</div>
+      <div class="svc-desc">【2つ目のサービス説明】</div>
+      <ul class="feat">
+        <li>特徴1</li>
+        <li>特徴2</li>
+        <li>特徴3</li>
+      </ul>
+      <a href="【2つ目のアフィリエイトURL】"
+         target="_blank" rel="noopener sponsored"
+         class="btn" style="background:#333;">
+        詳細を確認する →
+      </a>
+    </div>
+    -->
+
+  </div>
+</div>
+
+
+<!-- ============================================================
+     FAQ
+     ============================================================ -->
+<div class="section section-gray">
+  <div class="wrap">
+    <p class="section-label">よくある質問</p>
+    <h2>退職代行を使う前の不安、全部答えます</h2>
+
+    <div style="margin-top:26px;">
+      <div class="faq-item">
+        <div class="faq-q">退職代行って法的に問題ないですか？</div>
+        <p class="faq-a">問題ありません。退職の意思を伝えることを代行するサービスです。弁護士監修・労働組合が運営するものも多く、適切に使えば違法性は一切ありません。</p>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">即日で退職できますか？</div>
+        <p class="faq-a">多くのサービスで当日〜翌日対応が可能です。申し込み後、その日から出社しなかったケースも実際にあります。</p>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">会社から損害賠償を請求されませんか？</div>
+        <p class="faq-a">通常の退職で損害賠償が認められるケースはほぼありません。過度に心配しなくて大丈夫ですが、不安なら弁護士が関わるサービスを選ぶと安心です。</p>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">費用はどのくらいかかりますか？</div>
+        <p class="faq-a">サービスにより異なりますが、2〜3万円が相場です。相談自体は無料のところがほとんどなので、まず話を聞いてみてください。</p>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">有給が残っているのですが使えますか？</div>
+        <p class="faq-a">有給消化の交渉もやってくれます。退職日までの有給を取得するよう会社へ要求するのは労働者の正当な権利です。</p>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">退職後の転職活動はどうすればいいですか？</div>
+        <p class="faq-a">辞めてから転職活動しても全く問題ありません。在職中より集中して動けるケースが多いです。転職エージェントを使えば非公開求人も含めてサポートしてもらえます。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     FINAL CTA
+     ============================================================ -->
+<div class="section section-dark" style="padding:56px 0;">
+  <div class="wrap" style="text-align:center;">
+    <p style="color:#777;font-size:13px;margin-bottom:14px;">このページを読んでいるあなたへ</p>
+    <h2 style="color:#fff;margin-bottom:18px;">
+      「まだ頑張れる」は、<br>限界を超えてから言う言葉じゃない
+    </h2>
+    <p style="color:#aaa;font-size:14px;margin-bottom:30px;line-height:1.9;">
+      相談は無料です。話を聞いてもらうだけでも、<br>かなり気持ちが楽になります。<br>
+      まず一歩踏み出してみてください。
+    </p>
+
+    <!-- ==================================================
+         ★★★ 最終CTAボタン ★★★
+         上のメインCTAと同じアフィリエイトURLを入れてください
+         ================================================== -->
+    <a href="【アフィリエイトURL】"
+       target="_blank"
+       rel="noopener sponsored"
+       class="btn"
+       style="max-width:460px;margin:0 auto;font-size:18px;padding:20px 32px;border-radius:8px;">
+      まず無料で相談してみる →
+    </a>
+    <p style="color:#555;font-size:12px;margin-top:12px;">※ 相談・見積もりは無料。強引な勧誘はありません</p>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     FOOTER
+     ============================================================ -->
+<footer>
+  <div class="wrap">
+    <!-- ★★★ 運営情報を入れてください ★★★ -->
+    <p>
+      運営: <span class="url-placeholder">← アカウント名 or 運営者名</span><br>
+      お問い合わせ: <span class="url-placeholder">← SNSのDMリンク or メールアドレス</span>
+    </p>
+    <p style="margin-top:14px;">
+      <a href="#">プライバシーポリシー</a>　|　<a href="#">免責事項</a>
+    </p>
+    <p style="margin-top:14px;">
+      ※ このページにはアフィリエイトリンクが含まれています。<br>
+      サービスへの申し込みが発生した場合、当サイトに報酬が支払われることがあります。<br>
+      掲載情報は執筆時点のものです。最新情報は各サービス公式サイトをご確認ください。
+    </p>
+    <!-- ★ サイト名・年を書き換える -->
+    <p style="margin-top:14px;">© 2025 <span class="url-placeholder">← サイト名</span> All Rights Reserved.</p>
+  </div>
+</footer>
+
+
+<!-- ============================================================
+     STICKY CTA（スマホ最下部固定）
+     ============================================================ -->
+<div class="sticky">
+  <!-- ==================================================
+       ★★★ スティッキーボタン ★★★
+       同じアフィリエイトURLを入れてください
+       ================================================== -->
+  <a href="【アフィリエイトURL】"
+     target="_blank"
+     rel="noopener sponsored"
+     class="btn">
+    無料相談してみる →
+  </a>
+</div>
+
+<div class="sticky-gap"></div>
+
+</body>
+</html>
