@@ -9,10 +9,12 @@ auto_daily.py — 全アカウント一括動画生成（毎日自動実行）
 import argparse
 import json
 import logging
+import os
 import subprocess
 import sys
 from datetime import date, datetime
 from pathlib import Path
+from typing import Optional
 
 import yaml
 
@@ -127,15 +129,16 @@ def _pick_video(account: str) -> Path:
 
 
 def _pick_bgm() -> Path | None:
-    """input/bgm/ からBGMを選ぶ"""
+    """input/bgm/ からBGMを選ぶ。dummy.mp3や空ファイルは除外する"""
     bgm_dir = BASE_DIR / "input" / "bgm"
-    mp3s = [p for p in sorted(bgm_dir.glob("*.mp3")) if p.name != "dummy.mp3"]
-    if not mp3s:
-        mp3s = list(bgm_dir.glob("*.mp3"))
+    skip = {"dummy.mp3"}
+    mp3s = [
+        p for p in sorted(bgm_dir.glob("*.mp3"))
+        if p.name not in skip and p.stat().st_size > 1024
+    ]
     if not mp3s:
         return None
-    idx = date.today().weekday() % len(mp3s)
-    return mp3s[idx]
+    return mp3s[date.today().weekday() % len(mp3s)]
 
 
 def _notify(title: str, message: str):
@@ -173,12 +176,23 @@ def _move_to_date_folder(account: str, stdout: str, today_str: str) -> Path | No
     return None
 
 
+def _load_dotenv():
+    """buzz_system/.env を読み込んで環境変数に設定する"""
+    env_path = BASE_DIR / ".env"
+    if env_path.exists():
+        for line in env_path.read_text(encoding="utf-8").splitlines():
+            if "=" in line and not line.strip().startswith("#"):
+                k, v = line.strip().split("=", 1)
+                os.environ.setdefault(k.strip(), v.strip())
+
+
 def generate_for_account(account: str, dry_run: bool = False) -> dict:
     """1アカウント分の動画を生成して結果を返す"""
+    _load_dotenv()
     today_weekday = date.today().weekday()
     today_str = date.today().strftime("%Y-%m-%d")
 
-    # account_design.md を優先参照 → なければ daily_content.yaml にフォールバック
+    # ── ① トピック（痛み語）を account_design.md から取得 ────────────
     try:
         from modules.account_design_loader import pick_daily_content
         knowledge_dir = BASE_DIR / "knowledge"
@@ -190,9 +204,7 @@ def generate_for_account(account: str, dry_run: bool = False) -> dict:
     if design_content:
         topic = design_content["topic"]
         info  = design_content["info"]
-        logger.info(f"[{account}] account_design.md から読み込み: topic={topic}")
     else:
-        # フォールバック: daily_content.yaml
         daily_topics = _load_daily_topics()
         topics = daily_topics.get(account, [])
         if not topics:
@@ -200,7 +212,21 @@ def generate_for_account(account: str, dry_run: bool = False) -> dict:
         config = topics[today_weekday % len(topics)]
         topic = config["topic"]
         info  = config["info"]
-        logger.info(f"[{account}] daily_content.yaml から読み込み: topic={topic}")
+
+    # ── ② Claude APIで毎回新しいスライドを生成 ───────────────────────
+    generated_slides = []
+    try:
+        from modules.content_generator import generate_slides_with_claude
+        generated_slides = generate_slides_with_claude(account, topic)
+        if generated_slides:
+            logger.info(f"[{account}] Claude生成スライド使用: topic={topic}")
+        else:
+            logger.info(f"[{account}] フォールバック: account_design.md のスライド使用")
+    except Exception as e:
+        logger.warning(f"[{account}] Claude生成エラー: {e}")
+
+    # Claude生成 → account_design.md → daily_content の優先順位
+    final_slides = generated_slides or (design_content or {}).get("slides", [])
 
     try:
         video_path = _pick_video(account)
@@ -209,6 +235,21 @@ def generate_for_account(account: str, dry_run: bool = False) -> dict:
 
     bgm_path = _pick_bgm()
 
+    # ── ③ TTS音声生成 ───────────────────────────────────────────────
+    narration_path = None
+    if final_slides:
+        try:
+            from modules.tts_engine import generate_narration
+            tts_dir = BASE_DIR / "output" / today_str / account
+            narration_path = generate_narration(account, final_slides, tts_dir)
+            if narration_path:
+                logger.info(f"[{account}] TTS生成完了: {narration_path}")
+        except Exception as e:
+            logger.warning(f"[{account}] TTS生成エラー: {e}")
+
+    # BGMがない場合はTTS音声をBGM代わりに使う
+    effective_bgm = bgm_path or narration_path
+
     cmd = [
         sys.executable, str(BASE_DIR / "make_video.py"),
         "--account", account,
@@ -216,10 +257,24 @@ def generate_for_account(account: str, dry_run: bool = False) -> dict:
         "--info", info,
         "--topic", topic,
     ]
-    if bgm_path:
-        cmd += ["--bgm", str(bgm_path)]
+    if effective_bgm:
+        cmd += ["--bgm", str(effective_bgm)]
+    if final_slides:
+        cmd += ["--slides-json", json.dumps(final_slides, ensure_ascii=False)]
     if dry_run:
         cmd.append("--dry-run")
+
+    # ── ④ Google Sheetsにログ記録 ────────────────────────────────
+    if final_slides:
+        try:
+            from modules.sheets_logger import log_to_sheets
+            from modules.tts_engine import _clean_for_tts
+            narration_text = "　".join(
+                _clean_for_tts(s) for s in final_slides if s
+            )
+            log_to_sheets(account, topic, final_slides, narration_text)
+        except Exception as e:
+            logger.warning(f"[{account}] Sheets記録エラー: {e}")
 
     logger.info(f"[{account}] 生成開始: topic={topic}")
     result = subprocess.run(cmd, capture_output=True, text=True, cwd=str(BASE_DIR))

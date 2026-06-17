@@ -1,6 +1,8 @@
 """
 account_design_loader.py
 account_design.md を解析して毎日の動画コンテンツ（hook・body・topic）を返す。
+新フォーマット: VIDEO_PATTERN_N / SLIDE_1〜5 を優先。
+旧フォーマット: ```コードブロック``` パターンにフォールバック。
 """
 import re
 import random
@@ -16,7 +18,44 @@ def _load_text(path: Path) -> str:
 
 
 # ─────────────────────────────────────────────
-# パーサー: TikTok5枚構成パターン
+# パーサー: 新フォーマット VIDEO_PATTERN/SLIDE_N
+# ─────────────────────────────────────────────
+
+def _parse_video_patterns(md_text: str) -> list:
+    """
+    新フォーマット VIDEO_PATTERN_N「...」 の SLIDE_1〜5 を抽出。
+    Returns: [{"name": str, "slides": [str x 5]}]
+    各 slides[i] は SLIDE_{i+1} の整形済みテキスト（改行・ブランク行込み）。
+    """
+    patterns = []
+    blocks = re.split(r'###\s+VIDEO_PATTERN_\d+', md_text)
+
+    for block in blocks[1:]:
+        name_match = re.match(r'\s*「(.+?)」', block)
+        name = name_match.group(1) if name_match else "パターン"
+
+        # SLIDE_N: を区切りとして split
+        slide_parts = re.split(r'\nSLIDE_(\d+):', block)
+        # slide_parts = [pre, num, content, num, content, ...]
+
+        slide_dict: dict[int, str] = {}
+        for idx in range(1, len(slide_parts), 2):
+            if idx + 1 < len(slide_parts):
+                slide_num = int(slide_parts[idx])
+                content = slide_parts[idx + 1]
+                # パターン境界（---）か末尾で切る
+                content = re.split(r'\n---', content)[0].strip()
+                slide_dict[slide_num] = content
+
+        if slide_dict and 1 in slide_dict:
+            slides = [slide_dict.get(i, "") for i in range(1, 6)]
+            patterns.append({"name": name, "slides": slides})
+
+    return patterns
+
+
+# ─────────────────────────────────────────────
+# パーサー: 旧フォーマット TikTok5枚構成パターン
 # ─────────────────────────────────────────────
 
 def _parse_tiktok_patterns(md_text: str) -> list:
@@ -26,15 +65,12 @@ def _parse_tiktok_patterns(md_text: str) -> list:
     """
     patterns = []
 
-    # ### パターンN「...」 で区切る
     blocks = re.split(r'###\s+パターン\d+', md_text)
 
     for block in blocks[1:]:
-        # パターン名
         name_match = re.match(r'\s*「(.+?)」', block)
         name = name_match.group(1) if name_match else "パターン"
 
-        # ```...``` ブロックを取得
         code_match = re.search(r'```\n(.*?)```', block, re.DOTALL)
         if not code_match:
             continue
@@ -50,7 +86,6 @@ def _parse_tiktok_patterns(md_text: str) -> list:
                 current_card = int(card_match.group(1))
                 content = card_match.group(2).strip()
                 if current_card == 1:
-                    # ＼...／ を除去して純粋なテキストを取り出す
                     inner = re.sub(r'[＼\\](.+?)[／/]', r'\1', content)
                     hook = inner if inner != content else content
                 elif 2 <= current_card <= 4:
@@ -88,7 +123,7 @@ def _parse_pain_words(md_text: str) -> list:
 
     for line in md_text.splitlines():
         if '痛み語リスト' in line:
-            in_block = False  # 次の```を待つ
+            in_block = False
         if '```' in line:
             in_block = not in_block
             continue
@@ -101,17 +136,24 @@ def _parse_pain_words(md_text: str) -> list:
 
 
 # ─────────────────────────────────────────────
-# フック抽出: hook_templates.txt 代替として使える1枚目テキスト
+# フック抽出: hook_generator.py 向け
 # ─────────────────────────────────────────────
 
 def load_hooks_for_account(account: str, knowledge_dir: Path) -> list:
     """
     account_design.md の各パターンの1枚目テキスト（hook）を一覧で返す。
-    hook_generator.py の候補プールに追加される。
+    新フォーマットは SLIDE_1、旧フォーマットは 1枚目テキスト。
     """
     text = _load_text(knowledge_dir / account / "account_design.md")
     if not text:
         return []
+
+    # 新フォーマット優先
+    video_patterns = _parse_video_patterns(text)
+    if video_patterns:
+        return [p["slides"][0] for p in video_patterns if p["slides"][0]]
+
+    # 旧フォーマットフォールバック
     patterns = _parse_tiktok_patterns(text)
     return [p["hook"] for p in patterns if p["hook"]]
 
@@ -124,32 +166,45 @@ def pick_daily_content(account: str, knowledge_dir: Path, weekday: int) -> Optio
     """
     account_design.md から今日の曜日に合ったコンテンツを返す。
 
-    Returns:
-        {"topic": str, "info": str, "hook_hint": str} or None
-        - topic    : 痛み語（TikTokトピックキーワード）
-        - info     : 「・〇〇\n・〇〇」形式のボディテキスト
-        - hook_hint: 1枚目フックの参考テキスト（hook_generatorが使う）
+    新フォーマット（VIDEO_PATTERN）が存在する場合:
+        {"topic", "info", "hook_hint", "slides": [s1,s2,s3,s4,s5]}
+        slides[0] = SLIDE_1 (フック)
+        slides[1] = SLIDE_2 (共感)
+        slides[2] = SLIDE_3 (整理)
+        slides[3] = SLIDE_4 (選択肢)
+        slides[4] = SLIDE_5 (CTA)
+
+    旧フォーマットの場合:
+        {"topic", "info", "hook_hint"}  ← slides キーなし
     """
     text = _load_text(knowledge_dir / account / "account_design.md")
     if not text:
         return None
 
-    patterns = _parse_tiktok_patterns(text)
     pain_words = _parse_pain_words(text)
 
+    # ── 新フォーマット優先 ──────────────────────────
+    video_patterns = _parse_video_patterns(text)
+    if video_patterns:
+        pattern = video_patterns[weekday % len(video_patterns)]
+        slides = pattern["slides"]
+        topic = pain_words[weekday % len(pain_words)] if pain_words else pattern["name"]
+
+        return {
+            "topic": topic,
+            "info": "\n".join(s for s in slides[1:4] if s),  # 旧呼び出し元向けフォールバック
+            "hook_hint": slides[0],
+            "slides": slides,
+        }
+
+    # ── 旧フォーマットフォールバック ────────────────
+    patterns = _parse_tiktok_patterns(text)
     if not patterns:
         return None
 
-    # 曜日でパターンをローテーション（5パターン → 7曜日をmod）
     pattern = patterns[weekday % len(patterns)]
+    topic = pain_words[weekday % len(pain_words)] if pain_words else pattern["name"]
 
-    # トピック: 痛み語リストから曜日ローテーション
-    if pain_words:
-        topic = pain_words[weekday % len(pain_words)]
-    else:
-        topic = pattern["name"]
-
-    # ボディテキスト: パターンのbody_pointsを「・」形式に
     if pattern["body_points"]:
         info = "\n".join(f"・{p}" for p in pattern["body_points"])
     else:

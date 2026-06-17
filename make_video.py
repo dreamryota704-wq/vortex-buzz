@@ -16,6 +16,11 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+import PIL.Image
+# Pillow 10+ で削除された ANTIALIAS を moviepy 1.0.3 向けに補完
+if not hasattr(PIL.Image, "ANTIALIAS"):
+    PIL.Image.ANTIALIAS = PIL.Image.LANCZOS
+
 import click
 import yaml
 
@@ -94,9 +99,10 @@ def _print_summary(video_id, account, topic, funnel, cta_type, hook_text, output
 @click.option("--topic", required=True, help="Video topic keyword (e.g. 副業)")
 @click.option("--funnel", default=None, help="Funnel identifier (defaults to account's default_funnel)")
 @click.option("--platform", default="tiktok", help="Publishing platform for UTM (default: tiktok)")
+@click.option("--slides-json", default=None, help="JSON array of 5 pre-formatted slide texts (SLIDE_1〜5)")
 @click.option("--dry-run", is_flag=True, default=False, help="Generate metadata without processing video")
 @click.option("--verbose", "-v", is_flag=True, default=False, help="Enable verbose logging")
-def main(account, video, bgm, info, topic, funnel, platform, dry_run, verbose):
+def main(account, video, bgm, info, topic, funnel, platform, slides_json, dry_run, verbose):
     """Generate a short video for TikTok/Reels/Shorts with text overlays and BGM."""
     if verbose:
         logging.basicConfig(level=logging.DEBUG, force=True)
@@ -145,20 +151,34 @@ def main(account, video, bgm, info, topic, funnel, platform, dry_run, verbose):
     from modules.hook_generator import generate_hook, generate_text_points, generate_cta
 
     knowledge_path = BASE_DIR / "knowledge" / account
-    hook_text = generate_hook(
-        account_name=account,
-        topic=topic,
-        hook_tone=hook_tone,
-        knowledge_base_path=knowledge_path,
-    )
-    click.echo(f"[make_video] フック: {hook_text}")
 
-    # ── Parse body points ─────────────────────────────────────────────────────
-    body_points = generate_text_points(info)
-    click.echo(f"[make_video] ボディポイント数: {len(body_points)}")
+    # --slides-json が渡された場合は SLIDE_1〜5 をそのまま使う
+    _slides = None
+    if slides_json:
+        import json as _json
+        try:
+            _slides = _json.loads(slides_json)
+        except Exception:
+            _slides = None
 
-    # ── Generate CTA text ─────────────────────────────────────────────────────
-    cta_text = generate_cta(account, funnels_cfg, cta_type)
+    if _slides and len(_slides) >= 5:
+        hook_text   = _slides[0]  # SLIDE_1: フック
+        body_points = [s for s in _slides[1:4] if s]  # SLIDE_2〜4: ボディ
+        cta_text    = _slides[4]  # SLIDE_5: CTA
+        click.echo(f"[make_video] スライドJSON使用: フック={hook_text[:30]}...")
+    else:
+        hook_text = generate_hook(
+            account_name=account,
+            topic=topic,
+            hook_tone=hook_tone,
+            knowledge_base_path=knowledge_path,
+        )
+        click.echo(f"[make_video] フック: {hook_text}")
+
+        body_points = generate_text_points(info)
+        click.echo(f"[make_video] ボディポイント数: {len(body_points)}")
+
+        cta_text = generate_cta(account, funnels_cfg, cta_type)
 
     # ── Generate video ID and output path ────────────────────────────────────
     video_id = _generate_video_id()
@@ -213,13 +233,17 @@ def main(account, video, bgm, info, topic, funnel, platform, dry_run, verbose):
         from modules.text_overlay import create_hook_overlay, create_body_overlay, create_cta_overlay
         from modules.sfx_engine import add_sfx, get_default_sfx_events
 
+        # 動画時間設定: コンテンツ15秒 + CTA専用5秒 = 合計20秒
+        CONTENT_DURATION = 15.0
+        CTA_DURATION     = 5.0
+        TOTAL_DURATION   = CONTENT_DURATION + CTA_DURATION  # 20.0
+
         click.echo("[make_video] 動画読み込み中...")
         image_exts = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
         if video_path.suffix.lower() in image_exts:
             import random as _rnd
-            click.echo("[make_video] 画像ファイルを検出 → 4〜5枚のケンバーンズ連結動画に変換")
+            click.echo("[make_video] 画像ファイルを検出 → ケンバーンズ15秒 + CTA5秒")
 
-            # 同ディレクトリの全画像を収集
             dummy_names = {"dummy.mp4", "dummy.mp3"}
             all_imgs = []
             for _ext in (".jpg", ".jpeg", ".png", ".webp", ".bmp"):
@@ -238,43 +262,62 @@ def main(account, video, bgm, info, topic, funnel, platform, dry_run, verbose):
             else:
                 selected = all_imgs
 
-            dur_each = 15.0 / len(selected)
-            click.echo(f"[make_video] {len(selected)}枚使用 (各{dur_each:.1f}秒): " +
+            dur_each = CONTENT_DURATION / len(selected)
+            click.echo(f"[make_video] {len(selected)}枚使用 (各{dur_each:.1f}秒 × コンテンツ部): " +
                        ", ".join(p.name for p in selected))
 
             from moviepy.editor import concatenate_videoclips
             kb_clips = [_make_kenburns_clip(img, dur_each) for img in selected]
-            clip = concatenate_videoclips(kb_clips, method="compose")
+            # CTA専用背景: 最後の画像をゆっくりケンバーンズで5秒
+            cta_bg = _make_kenburns_clip(selected[-1], CTA_DURATION)
+            clip = concatenate_videoclips(kb_clips + [cta_bg], method="compose")
         else:
+            dur_each = None
             clip = VideoFileClip(str(video_path))
 
         # ④ Crop to 9:16
         click.echo("[make_video] ④ 縦型クロップ (9:16)...")
         clip = crop_vertical(clip)
 
-        # ⑤ Cut to 15 seconds
-        click.echo("[make_video] ⑤ 15秒カット...")
-        clip = cut_to_duration(clip, max_seconds=15)
+        # ⑤ Cut to 20 seconds (15s content + 5s CTA)
+        click.echo("[make_video] ⑤ 20秒カット...")
+        clip = cut_to_duration(clip, max_seconds=TOTAL_DURATION)
         video_duration = clip.duration
+
+        if dur_each is None:
+            dur_each = 3.0
 
         # ⑥ Apply color filter
         click.echo(f"[make_video] ⑥ カラーフィルター適用: {color_filter}")
         clip = apply_color_filter(clip, color_filter)
 
-        # ⑦ Hook overlay (0–3s)
+        # ⑦ Hook overlay（最初のdur_each秒）
         click.echo("[make_video] ⑦ フックテキストオーバーレイ...")
-        solution = body_points[0] if body_points else None
-        hook_clip = create_hook_overlay(hook_text, duration=3.0, font_size=72,
-                                        solution_text=solution, topic=topic,
-                                        points_count=len(body_points))
+        hook_clip = create_hook_overlay(
+            hook_text,
+            duration=dur_each,
+            font_size=68,
+            topic=None if _slides else topic,
+        )
 
-        # ⑧ Body text overlay
+        # ⑧ Body text overlay（コンテンツ15秒以内）
         click.echo("[make_video] ⑧ ボディテキストオーバーレイ...")
-        body_clips = create_body_overlay(body_points, start_time=3.0, font_size=52, video_duration=video_duration)
+        body_clips = create_body_overlay(
+            body_points,
+            start_time=dur_each,
+            font_size=54,
+            video_duration=CONTENT_DURATION,  # 15秒以内に収める
+            dur_each=dur_each,
+        )
 
-        # ⑨ CTA overlay
-        click.echo("[make_video] ⑨ CTAオーバーレイ...")
-        cta_clip = create_cta_overlay(cta_text, start_offset_from_end=3.0, font_size=60, video_duration=video_duration)
+        # ⑨ CTA overlay（15〜20秒の5秒間）
+        click.echo("[make_video] ⑨ CTAオーバーレイ (15〜20秒)...")
+        cta_clip = create_cta_overlay(
+            cta_text,
+            start_offset_from_end=CTA_DURATION,  # 最後の5秒
+            font_size=44,
+            video_duration=video_duration,  # 20秒基準
+        )
 
         # Composite all overlays
         overlay_clips = [clip]
