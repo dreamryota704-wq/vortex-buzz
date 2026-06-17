@@ -177,14 +177,30 @@ def generate_for_account(account: str, dry_run: bool = False) -> dict:
     """1アカウント分の動画を生成して結果を返す"""
     today_weekday = date.today().weekday()
     today_str = date.today().strftime("%Y-%m-%d")
-    daily_topics = _load_daily_topics()
-    topics = daily_topics.get(account, [])
-    if not topics:
-        return {"account": account, "status": "skip", "reason": "トピック未設定"}
 
-    config = topics[today_weekday % len(topics)]
-    topic = config["topic"]
-    info = config["info"]
+    # account_design.md を優先参照 → なければ daily_content.yaml にフォールバック
+    try:
+        from modules.account_design_loader import pick_daily_content
+        knowledge_dir = BASE_DIR / "knowledge"
+        design_content = pick_daily_content(account, knowledge_dir, today_weekday)
+    except Exception as e:
+        logger.warning(f"[{account}] account_design_loader エラー: {e}")
+        design_content = None
+
+    if design_content:
+        topic = design_content["topic"]
+        info  = design_content["info"]
+        logger.info(f"[{account}] account_design.md から読み込み: topic={topic}")
+    else:
+        # フォールバック: daily_content.yaml
+        daily_topics = _load_daily_topics()
+        topics = daily_topics.get(account, [])
+        if not topics:
+            return {"account": account, "status": "skip", "reason": "トピック未設定"}
+        config = topics[today_weekday % len(topics)]
+        topic = config["topic"]
+        info  = config["info"]
+        logger.info(f"[{account}] daily_content.yaml から読み込み: topic={topic}")
 
     try:
         video_path = _pick_video(account)

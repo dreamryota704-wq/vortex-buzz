@@ -205,9 +205,14 @@ def generate_hook(
             if line and not line.startswith("#"):
                 shared_templates.append(line)
 
-    # Priority: winning_templates > file_templates > shared_templates > builtin
+    # account_design.md の1枚目フック（パターン別）も候補に追加
+    from modules.account_design_loader import load_hooks_for_account
+    design_hooks = load_hooks_for_account(account_name, knowledge_base_path.parent)
+
+    # Priority: winning > design_hooks > file_templates > shared > builtin
     candidate_pool = (
         winning_templates[:5]
+        + design_hooks[:10]
         + file_templates[:10]
         + shared_templates[:10]
         + BUILTIN_HOOK_TEMPLATES.get(hook_style, BUILTIN_HOOK_TEMPLATES["friendly"])
