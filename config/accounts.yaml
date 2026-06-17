@@ -1,27 +1,27 @@
 accounts:
   account_A:
-    name: ビジネス攻略チャンネル
+    name: キャリア爆上げチャンネル
     style: sharp
     hook_tone: aggressive
     cta: "プロフィールのリンクから今すぐチェック👆"
     color_filter: sharp
     sfx_volume: -12
-    default_funnel: fukugyo_lp
+    default_funnel: tenri_backend_lp
     funnels:
-      - fukugyo_lp
-      - affiliate_01
+      - tenri_backend_lp
+      - taishoku_boss_lp
 
   account_B:
-    name: 副業情報局
+    name: 退職・転職サポート局
     style: clean
     hook_tone: friendly
     cta: "詳しくはプロフィールリンクへ☝️"
     color_filter: clean
     sfx_volume: -15
-    default_funnel: affiliate_01
+    default_funnel: taishoku_check_lp
     funnels:
-      - affiliate_01
-      - fukugyo_lp
+      - taishoku_check_lp
+      - tenri_backend_lp
 
   taishoku_oa:
     name: 限界OLアカウント あかり

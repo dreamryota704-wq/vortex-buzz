@@ -1,27 +1,27 @@
 account: account_A
-name: ビジネス攻略チャンネル
+name: キャリア爆上げチャンネル
 hook_tone: aggressive
 hook_style: aggressive
-default_funnel: fukugyo_lp
-target_audience: 副業で収入を増やしたい20〜40代の会社員・フリーランス志望者
-value_proposition: 実績ベースの副業情報を攻撃的なスタイルで提供し、行動を即促す
+default_funnel: tenri_backend_lp
+target_audience: 今の会社に不満・年収を上げたい20〜40代の会社員
+value_proposition: 転職・キャリアチェンジで人生を変えた実例をアグレッシブに発信し、行動を即促す
 content_pillars:
-  - 実績公開（数字・証拠ベース）
-  - 失敗談と学び
-  - 即行動できる具体的手順
+  - 転職成功体験（年収アップ・環境改善）
+  - ブラック企業の見分け方・脱出方法
+  - 転職エージェント活用術
 key_topics:
-  - 副業
-  - アフィリエイト
-  - 在宅ワーク
-  - スキルマーケット
-  - 月10万
+  - 転職
+  - 年収アップ
+  - ブラック企業
+  - 仕事辞めたい
+  - キャリアチェンジ
+  - 転職エージェント
 avoid_words:
   - 詐欺
   - 絶対
   - 保証
   - 必ず儲かる
   - 楽して
-  - 不労所得（過度な表現）
 posting_frequency: daily
 best_posting_times:
   - "07:00"
@@ -30,14 +30,13 @@ best_posting_times:
 tone_characteristics:
   - 断定口調
   - 数字・実績の多用
-  - 「今すぐ」「絶対」「確実」などの強調語
   - 問題提起型の入り
+  - 「今すぐ」「絶対」などの強調語
 hook_examples:
-  - "月{amount}稼いだ方法、全部話します"
-  - "【衝撃】{topic}で{days}に{amount}稼いだ実録"
-  - "{topic}やらないと損します、理由を教えます"
+  - "年収150万上がった転職の話、全部話します"
+  - "ブラック企業に残り続けるリスク、教えます"
+  - "転職しない人が損してる理由、言います"
 platform_notes:
   tiktok: "縦型、テロップ速め、BGMはアップテンポ"
   instagram: "サムネ重要、ストーリーでリマインド"
-  youtube: "タイトルに数字必須、サムネに赤文字"
 created_at: "2024-01-01T00:00:00"
