@@ -38,6 +38,31 @@ def _generate_video_id() -> str:
     return datetime.now().strftime("%Y%m%d_%H%M%S")
 
 
+def _make_kenburns_clip(image_path: Path, duration: float):
+    """単一画像にランダムなケンバーンズ効果（ズームイン or アウト）を適用"""
+    import random
+    import numpy as np
+    from PIL import Image as PILImage
+    from moviepy.editor import ImageClip, VideoClip
+
+    base = ImageClip(str(image_path)).set_duration(duration)
+    W, H = base.size
+    zoom_in = random.choice([True, False])
+    s0, s1 = (1.0, 1.12) if zoom_in else (1.12, 1.0)
+
+    def make_frame(t):
+        scale = s0 + (s1 - s0) * (t / duration)
+        img = PILImage.fromarray(base.get_frame(t)).resize(
+            (int(W * scale), int(H * scale)), PILImage.LANCZOS)
+        nw, nh = img.size
+        left, top = (nw - W) // 2, (nh - H) // 2
+        return np.array(img.crop((left, top, left + W, top + H)))
+
+    c = VideoClip(make_frame, duration=duration)
+    c.size = (W, H)
+    return c
+
+
 def _print_summary(video_id, account, topic, funnel, cta_type, hook_text, output_path, utm_url=None):
     """Print a production summary to stdout."""
     click.echo("")
@@ -191,28 +216,35 @@ def main(account, video, bgm, info, topic, funnel, platform, dry_run, verbose):
         click.echo("[make_video] 動画読み込み中...")
         image_exts = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
         if video_path.suffix.lower() in image_exts:
-            from moviepy.editor import ImageClip
-            import numpy as np
-            click.echo("[make_video] 画像ファイルを検出 → ケンバーンズ効果付き15秒動画に変換")
-            base_clip = ImageClip(str(video_path)).set_duration(15)
-            W, H = base_clip.size
-            # ゆっくりズームイン（1.0→1.12倍、15秒かけて）
-            def make_zoom_frame(t):
-                progress = t / 15.0
-                scale = 1.0 + 0.12 * progress
-                frame = base_clip.get_frame(t)
-                from PIL import Image as PILImage
-                img = PILImage.fromarray(frame)
-                new_w = int(W * scale)
-                new_h = int(H * scale)
-                img = img.resize((new_w, new_h), PILImage.LANCZOS)
-                left = (new_w - W) // 2
-                top = (new_h - H) // 2
-                img = img.crop((left, top, left + W, top + H))
-                return np.array(img)
-            from moviepy.editor import VideoClip
-            clip = VideoClip(make_zoom_frame, duration=15)
-            clip.size = (W, H)
+            import random as _rnd
+            click.echo("[make_video] 画像ファイルを検出 → 4〜5枚のケンバーンズ連結動画に変換")
+
+            # 同ディレクトリの全画像を収集
+            dummy_names = {"dummy.mp4", "dummy.mp3"}
+            all_imgs = []
+            for _ext in (".jpg", ".jpeg", ".png", ".webp", ".bmp"):
+                all_imgs.extend(video_path.parent.glob(f"*{_ext}"))
+                all_imgs.extend(video_path.parent.glob(f"*{_ext.upper()}"))
+            all_imgs = sorted({
+                p for p in all_imgs
+                if p.name not in dummy_names and p.stat().st_size > 0
+            })
+            if not all_imgs:
+                all_imgs = [video_path]
+
+            if len(all_imgs) >= 4:
+                n = _rnd.randint(4, min(5, len(all_imgs)))
+                selected = _rnd.sample(all_imgs, n)
+            else:
+                selected = all_imgs
+
+            dur_each = 15.0 / len(selected)
+            click.echo(f"[make_video] {len(selected)}枚使用 (各{dur_each:.1f}秒): " +
+                       ", ".join(p.name for p in selected))
+
+            from moviepy.editor import concatenate_videoclips
+            kb_clips = [_make_kenburns_clip(img, dur_each) for img in selected]
+            clip = concatenate_videoclips(kb_clips, method="compose")
         else:
             clip = VideoFileClip(str(video_path))
 
