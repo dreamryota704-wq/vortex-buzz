@@ -264,18 +264,6 @@ def generate_for_account(account: str, dry_run: bool = False) -> dict:
     if dry_run:
         cmd.append("--dry-run")
 
-    # ── ④ Google Sheetsにログ記録 ────────────────────────────────
-    if final_slides:
-        try:
-            from modules.sheets_logger import log_to_sheets
-            from modules.tts_engine import _clean_for_tts
-            narration_text = "　".join(
-                _clean_for_tts(s) for s in final_slides if s
-            )
-            log_to_sheets(account, topic, final_slides, narration_text)
-        except Exception as e:
-            logger.warning(f"[{account}] Sheets記録エラー: {e}")
-
     logger.info(f"[{account}] 生成開始: topic={topic}")
     result = subprocess.run(cmd, capture_output=True, text=True, cwd=str(BASE_DIR))
 
@@ -283,7 +271,14 @@ def generate_for_account(account: str, dry_run: bool = False) -> dict:
         dest = _move_to_date_folder(account, result.stdout, today_str)
         dest_str = str(dest) if dest else "不明"
         logger.info(f"[{account}] 生成完了 → {dest_str}")
-        return {"account": account, "status": "ok", "topic": topic, "output": dest_str}
+        return {
+            "account":   account,
+            "status":    "ok",
+            "topic":     topic,
+            "output":    dest_str,
+            "slides":    final_slides,
+            "narration": "　".join(s[:50] for s in final_slides if s),
+        }
     else:
         logger.error(f"[{account}] 失敗\n{result.stderr}")
         return {"account": account, "status": "error", "reason": result.stderr[-300:]}
