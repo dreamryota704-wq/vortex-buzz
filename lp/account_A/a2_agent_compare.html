@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>転職エージェント、結局どれを使えばいいのか</title>
+  <meta name="description" content="転職エージェントを選ぶ前に読んでください。失敗しない選び方と、実際に使って良かったエージェントを正直に話します。">
+
+  <meta property="og:title" content="転職エージェント、結局どれを使えばいいのか">
+  <meta property="og:description" content="失敗しない選び方と、実際に使って良かったエージェントを正直に話します。">
+  <meta property="og:type" content="website">
+  <!-- <meta property="og:image" content="【OGP画像URL】"> -->
+  <!-- <meta property="og:url" content="【このページのURL】"> -->
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Kaku Gothic ProN',
+                   'Hiragino Sans', 'Yu Gothic', Meiryo, sans-serif;
+      color: #111;
+      background: #fff;
+      line-height: 1.75;
+      font-size: 16px;
+    }
+
+    .wrap { max-width: 680px; margin: 0 auto; padding: 0 20px; }
+    h1 { font-size: clamp(22px, 5.5vw, 38px); font-weight: 900; line-height: 1.25; }
+    h2 { font-size: clamp(19px, 4vw, 26px); font-weight: 800; line-height: 1.35; }
+    h3 { font-size: clamp(16px, 3vw, 20px); font-weight: 700; }
+    p  { font-size: clamp(14px, 2.5vw, 16px); }
+
+    :root {
+      --red:    #D72424;
+      --yellow: #FFD600;
+      --dark:   #0c0c0c;
+      --gray:   #F5F5F5;
+      --border: #E2E2E2;
+      --green:  #2DB552;
+      --blue:   #1a6fc4;
+    }
+
+    /* HERO */
+    .hero {
+      background: var(--dark);
+      padding: 52px 0 44px;
+      border-bottom: 5px solid var(--blue);
+    }
+    .hero-tag {
+      display: inline-block;
+      background: var(--blue);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      padding: 4px 12px;
+      margin-bottom: 18px;
+    }
+    .hero h1 { color: #fff; }
+    .hero h1 em { color: var(--yellow); font-style: normal; }
+    .hero-sub { color: #aaa; font-size: 14px; margin-top: 16px; line-height: 1.85; }
+
+    /* SECTIONS */
+    .section { padding: 48px 0; }
+    .section-label {
+      font-size: 11px; font-weight: 700; letter-spacing: .12em;
+      color: var(--blue); margin-bottom: 10px; text-transform: uppercase;
+    }
+    .section-gray { background: var(--gray); }
+    .section-dark  { background: var(--dark); color: #fff; }
+
+    /* BOXES */
+    .alert {
+      background: #fff8e1; border-left: 4px solid #f0a800;
+      padding: 14px 18px; margin: 22px 0; font-size: 14px; line-height: 1.7;
+    }
+    .info-box {
+      background: #f0f6ff; border-left: 4px solid var(--blue);
+      padding: 14px 18px; margin: 22px 0; font-size: 14px; line-height: 1.75;
+    }
+    .warn-box {
+      background: #fff1f1; border: 1.5px solid #f8c8c8;
+      border-radius: 8px; padding: 20px 22px; margin: 24px 0;
+    }
+
+    /* CHECKLIST */
+    .cl-item {
+      display: flex; align-items: flex-start; gap: 14px;
+      padding: 15px 0; border-bottom: 1px solid var(--border);
+    }
+    .cl-item:last-child { border-bottom: none; }
+    .cl-icon { font-size: 20px; min-width: 26px; margin-top: 1px; }
+    .cl-text { flex: 1; font-size: 15px; }
+    .badge-blue {
+      display: inline-block; background: #e8f0fe; color: var(--blue);
+      font-size: 10px; font-weight: 700; padding: 2px 7px;
+      border-radius: 3px; margin-left: 6px; vertical-align: middle;
+    }
+    .badge-red {
+      display: inline-block; background: #ffecec; color: var(--red);
+      font-size: 10px; font-weight: 700; padding: 2px 7px;
+      border-radius: 3px; margin-left: 6px; vertical-align: middle;
+    }
+
+    /* FAIL PATTERNS */
+    .fail-item {
+      background: #fff; border: 1.5px solid var(--border);
+      border-radius: 8px; padding: 18px 20px; margin: 14px 0;
+    }
+    .fail-num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 24px; height: 24px; background: var(--red); color: #fff;
+      font-size: 12px; font-weight: 900; border-radius: 50%;
+      margin-right: 8px; vertical-align: middle;
+    }
+    .fail-title { font-weight: 800; font-size: 16px; margin-bottom: 8px; }
+    .fail-body { font-size: 14px; color: #555; line-height: 1.75; }
+
+    /* AGENT COMPARISON TABLE */
+    .compare-table {
+      width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 14px;
+    }
+    .compare-table th {
+      background: var(--dark); color: #fff; padding: 12px 14px;
+      text-align: left; font-size: 13px; font-weight: 700;
+    }
+    .compare-table td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    .compare-table tr:last-child td { border-bottom: none; }
+    .compare-table tr:nth-child(even) td { background: #f9f9f9; }
+    .check-green { color: var(--green); font-weight: 700; }
+    .cross-red   { color: var(--red);   font-weight: 700; }
+
+    /* SERVICE CARD */
+    .svc-card {
+      background: #fff; border: 2px solid var(--border);
+      border-radius: 12px; padding: 26px 24px; margin: 20px 0;
+    }
+    .svc-card.featured { border-color: var(--blue); }
+    .svc-tag {
+      display: inline-block; background: var(--blue); color: #fff;
+      font-size: 11px; font-weight: 700; padding: 3px 10px;
+      border-radius: 3px; margin-bottom: 10px;
+    }
+    .svc-tag.sub { background: #555; }
+    .svc-name { font-size: 22px; font-weight: 900; margin: 6px 0 4px; }
+    .svc-desc { font-size: 14px; color: #777; margin-bottom: 16px; }
+    .feat { list-style: none; margin: 14px 0; }
+    .feat li {
+      padding: 9px 0; border-bottom: 1px solid var(--border);
+      font-size: 15px; display: flex; align-items: center; gap: 10px;
+    }
+    .feat li:last-child { border-bottom: none; }
+    .feat li::before { content: "✓"; color: var(--green); font-weight: 900; font-size: 15px; }
+
+    /* BUTTON */
+    .btn {
+      display: block; width: 100%; background: var(--blue); color: #fff;
+      text-decoration: none; text-align: center; font-size: 17px;
+      font-weight: 800; padding: 18px 24px; border-radius: 6px;
+      margin: 18px 0 6px; line-height: 1.4; letter-spacing: .02em;
+    }
+    .btn:hover { opacity: .9; }
+    .btn.red { background: var(--red); }
+    .btn-note { text-align: center; font-size: 12px; color: #999; margin-bottom: 16px; }
+
+    /* FAQ */
+    .faq-item { border-bottom: 1px solid var(--border); padding: 18px 0; }
+    .faq-q {
+      font-weight: 700; font-size: 15px; display: flex;
+      gap: 10px; margin-bottom: 8px; align-items: flex-start;
+    }
+    .faq-q::before {
+      content: "Q"; background: var(--blue); color: #fff;
+      font-size: 12px; font-weight: 900; width: 22px; height: 22px;
+      border-radius: 50%; display: flex; align-items: center;
+      justify-content: center; flex-shrink: 0; margin-top: 1px;
+    }
+    .faq-a { font-size: 14px; color: #444; padding-left: 32px; line-height: 1.75; }
+
+    /* FOOTER */
+    footer {
+      background: #0c0c0c; color: #666; padding: 36px 20px;
+      font-size: 12px; text-align: center; line-height: 2;
+    }
+    footer a { color: #666; }
+
+    /* STICKY */
+    .sticky {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: rgba(255,255,255,.96); border-top: 1px solid var(--border);
+      padding: 10px 20px 18px; z-index: 999;
+    }
+    .sticky .btn { margin: 0; font-size: 15px; padding: 15px; }
+    @media (min-width: 680px) { .sticky { display: none; } }
+    .sticky-gap { height: 78px; }
+    @media (min-width: 680px) { .sticky-gap { display: none; } }
+
+    /* MISC */
+    .hl { background: var(--yellow); padding: 1px 3px; }
+    strong { font-weight: 800; }
+    hr.divider { border: none; border-top: 1px solid var(--border); margin: 30px 0; }
+
+    .url-placeholder {
+      background: #fffbcc; border: 2px dashed #f0c000;
+      padding: 2px 6px; font-weight: 700; color: #7a5500;
+      border-radius: 3px; font-size: 13px;
+    }
+
+    /* STEP */
+    .step-item {
+      display: flex; gap: 16px; align-items: flex-start; margin: 18px 0;
+    }
+    .step-num {
+      display: flex; align-items: center; justify-content: center;
+      width: 36px; height: 36px; min-width: 36px; background: var(--blue);
+      color: #fff; font-weight: 900; font-size: 16px; border-radius: 50%;
+    }
+    .step-body { flex: 1; }
+    .step-title { font-weight: 800; font-size: 16px; margin-bottom: 4px; }
+    .step-desc { font-size: 14px; color: #555; line-height: 1.7; }
+  </style>
+</head>
+<body>
+
+
+<!-- ============================================================
+     HERO
+     ============================================================ -->
+<div class="hero">
+  <div class="wrap">
+    <span class="hero-tag">転職エージェント比較</span>
+    <h1>転職エージェント、<br><em>結局どれを使えばいいのか</em></h1>
+    <p class="hero-sub">
+      「とりあえず登録してみたけど連絡が来ない」<br>
+      「担当者が合わなくて使うのをやめた」<br>
+      そういう失敗をしてほしくないので、正直に話します。
+    </p>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     INTRO
+     ============================================================ -->
+<div class="section">
+  <div class="wrap">
+    <p class="section-label">最初に読んでください</p>
+    <h2>エージェントは「登録すれば終わり」じゃないです</h2>
+
+    <p style="margin-top:20px;">
+      転職エージェントを使ったことがある人なら、一度は経験があると思います。
+    </p>
+    <p style="margin-top:12px;">
+      「登録したのに求人を大量に送りつけられるだけ」「担当者がやる気なくて面談が30分で終わった」
+      「紹介される求人がどれも的外れ」——こういう話、珍しくないです。
+    </p>
+    <p style="margin-top:12px;">
+      正直、<strong>エージェントの質は会社より担当者による部分が大きい</strong>。
+      ただ、最初から「当たりの担当者がいるエージェント」を選べば、その確率はぐっと上がります。
+    </p>
+
+    <div class="alert">
+      ⚠️ 転職エージェントは無料で使えますが、「どこでもいい」という選び方が一番損します。
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     エージェント選びで失敗する3パターン
+     ============================================================ -->
+<div class="section section-gray">
+  <div class="wrap">
+    <p class="section-label">よくある失敗</p>
+    <h2>こういう選び方をする人が後悔します</h2>
+
+    <div style="margin-top:24px;">
+      <div class="fail-item">
+        <div class="fail-title">
+          <span class="fail-num">1</span>とりあえず有名どころに全部登録する
+        </div>
+        <div class="fail-body">
+          3〜4社同時に登録すると、面談・書類準備・求人確認が全部並行になって管理できなくなります。
+          結局どこも中途半端になって、転職活動そのものが頓挫する人を何人も見てきました。
+          <strong>最初は1〜2社に絞る方がうまくいきます。</strong>
+        </div>
+      </div>
+
+      <div class="fail-item">
+        <div class="fail-title">
+          <span class="fail-num">2</span>担当者を変えてもらえることを知らない
+        </div>
+        <div class="fail-body">
+          「担当者と合わないな」と感じても、そのまま使い続ける人がほとんどです。
+          でも、担当者変更を申し出るのは全然おかしくない。
+          合わない人と続けても、紹介される求人の質も下がります。
+        </div>
+      </div>
+
+      <div class="fail-item">
+        <div class="fail-title">
+          <span class="fail-num">3</span>「非公開求人があります」に流されて登録する
+        </div>
+        <div class="fail-body">
+          どのエージェントも非公開求人は持っています。差別化のためのキャッチコピーだと思ってください。
+          <strong>重要なのは自分の業界・職種に強いエージェントかどうか</strong>です。
+          ITにいるのに総合型だけ使っていると、求人の質が落ちます。
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     エージェントを選ぶ5つのポイント
+     ============================================================ -->
+<div class="section">
+  <div class="wrap">
+    <p class="section-label">選び方</p>
+    <h2>エージェントを選ぶときに見るべき5つのこと</h2>
+
+    <div style="margin-top:24px;">
+      <div class="cl-item">
+        <div class="cl-icon">①</div>
+        <div class="cl-text">
+          <strong>自分の業界・職種の求人数が多いか</strong>
+          <span class="badge-blue">最重要</span>
+          <p style="font-size:14px;color:#555;margin-top:6px;">
+            総合型は求人数は多いが、専門性が薄い。業界特化型は求人数は少ないが質が高い。
+            まず総合型で全体を把握して、並行して専門型を使うのが王道です。
+          </p>
+        </div>
+      </div>
+
+      <div class="cl-item">
+        <div class="cl-icon">②</div>
+        <div class="cl-text">
+          <strong>初回面談が丁寧かどうか（30分以下は要注意）</strong>
+          <p style="font-size:14px;color:#555;margin-top:6px;">
+            優秀な担当者ほど最初のヒアリングに時間をかけます。
+            初回で「とりあえずこの求人どうですか」と言ってくる担当者は外れの可能性が高い。
+          </p>
+        </div>
+      </div>
+
+      <div class="cl-item">
+        <div class="cl-icon">③</div>
+        <div class="cl-text">
+          <strong>履歴書・職務経歴書の添削をしてくれるか</strong>
+          <p style="font-size:14px;color:#555;margin-top:6px;">
+            書類選考の通過率は書き方で大きく変わります。
+            添削サポートがあるかどうかを最初に確認してください。
+          </p>
+        </div>
+      </div>
+
+      <div class="cl-item">
+        <div class="cl-icon">④</div>
+        <div class="cl-text">
+          <strong>面接対策・フィードバックが充実しているか</strong>
+          <p style="font-size:14px;color:#555;margin-top:6px;">
+            面接後のフィードバックをちゃんともらえるかどうかが、次の選考に大きく影響します。
+            「頑張ってください」だけのエージェントはやめておいた方が無難。
+          </p>
+        </div>
+      </div>
+
+      <div class="cl-item">
+        <div class="cl-icon">⑤</div>
+        <div class="cl-text">
+          <strong>年収交渉を代わりにやってくれるか</strong>
+          <span class="badge-blue">見落としがち</span>
+          <p style="font-size:14px;color:#555;margin-top:6px;">
+            自分で「年収を上げてほしい」と言うのは難しい。
+            エージェントが間に入って交渉してくれるかどうかは、内定後の年収に直接響きます。
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     エージェント比較表
+     ============================================================ -->
+<div class="section section-gray">
+  <div class="wrap">
+    <p class="section-label">比較</p>
+    <h2>タイプ別エージェントの特徴</h2>
+    <p style="margin-top:12px;color:#555;font-size:14px;">
+      ※ 下記は一般的な傾向です。担当者によって質は大きく変わります。
+    </p>
+
+    <table class="compare-table" style="margin-top:20px;">
+      <thead>
+        <tr>
+          <th>タイプ</th>
+          <th>向いている人</th>
+          <th>注意点</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>総合型</strong><br><span style="font-size:12px;color:#888;">求人数が多い</span></td>
+          <td style="font-size:14px;">業界が決まっていない人・初めて転職する人</td>
+          <td style="font-size:14px;">求人の質にばらつきがある</td>
+        </tr>
+        <tr>
+          <td><strong>IT・Web特化型</strong><br><span style="font-size:12px;color:#888;">専門性が高い</span></td>
+          <td style="font-size:14px;">エンジニア・デザイナー・マーケター</td>
+          <td style="font-size:14px;">異業種への転職には向かない</td>
+        </tr>
+        <tr>
+          <td><strong>ハイクラス向け</strong><br><span style="font-size:12px;color:#888;">年収600万〜</span></td>
+          <td style="font-size:14px;">管理職・専門職・年収アップ狙い</td>
+          <td style="font-size:14px;">スキル・実績がないと求人紹介が少ない</td>
+        </tr>
+        <tr>
+          <td><strong>20代特化型</strong><br><span style="font-size:12px;color:#888;">第二新卒・未経験OK</span></td>
+          <td style="font-size:14px;">社会人1〜3年目・未経験転職</td>
+          <td style="font-size:14px;">30代以上には求人が少ない</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="info-box">
+      💡 迷ったらまず総合型を1社、自分の業界に強い特化型を1社の計2社から始めるのが一番効率的です。
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     転職活動の進め方
+     ============================================================ -->
+<div class="section">
+  <div class="wrap">
+    <p class="section-label">進め方</p>
+    <h2>エージェントを使った転職、正しい動き方</h2>
+
+    <div style="margin-top:24px;">
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">エージェントに登録して初回面談を受ける</div>
+          <div class="step-desc">現職の状況・転職理由・希望条件を正直に話す。「まだ迷っている」でもOK。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">履歴書・職務経歴書を一緒に作り込む</div>
+          <div class="step-desc">ここに時間をかけると書類通過率が大幅に上がる。添削は遠慮なく依頼する。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">気になる求人に応募・面接対策を受ける</div>
+          <div class="step-desc">面接前の準備と、面接後のフィードバックを必ずもらう習慣をつける。</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-title">内定後に年収交渉をエージェントに任せる</div>
+          <div class="step-desc">自分では言いにくい年収の話をエージェントが代わりに動いてくれる。これが一番重要。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     SERVICE（アフィリエイト先）
+     ============================================================ -->
+<div class="section section-gray">
+  <div class="wrap">
+    <p class="section-label">おすすめ</p>
+    <h2>実際に使って良かった転職エージェント</h2>
+    <p style="margin-top:12px;color:#555;font-size:14px;">
+      いくつか使ってみた中で、サポートの質が高かったものだけ紹介します。
+    </p>
+
+    <hr class="divider">
+
+    <!-- ==================================================
+         ★★★ メインサービスカード ★★★
+         href と内容をアフィリエイト先に合わせて書き換えてください
+         ================================================== -->
+    <div class="svc-card featured">
+      <span class="svc-tag">イチ押し</span>
+
+      <!-- ★ エージェント名 -->
+      <div class="svc-name">
+        <span class="url-placeholder">← エージェント名を入れる</span>
+      </div>
+
+      <!-- ★ 一言説明 -->
+      <div class="svc-desc">
+        <span class="url-placeholder">← 例：業界最大級の求人数 / 20代・30代に強い / 年収交渉に定評あり</span>
+      </div>
+
+      <!-- ★ 特徴（アフィリエイト先に合わせて書き換える） -->
+      <ul class="feat">
+        <li>非公開求人を含む求人数が業界最大級</li>
+        <li>初回面談でキャリアの方向性から一緒に考えてくれる</li>
+        <li>履歴書・職務経歴書の添削が無制限</li>
+        <li>内定後の年収交渉を代行してくれる</li>
+        <li>利用料は完全無料</li>
+      </ul>
+
+      <!-- ★★★ CTAボタン：hrefにアフィリエイトURLを入れる ★★★ -->
+      <a href="【アフィリエイトURL】"
+         target="_blank"
+         rel="noopener sponsored"
+         class="btn">
+        無料で登録してみる →
+      </a>
+      <p class="btn-note">※ 登録・利用は完全無料です</p>
+    </div>
+
+    <!-- ==================================================
+         ★ 2つ目のエージェント（オプション）
+         ================================================== -->
+    <!--
+    <div class="svc-card">
+      <span class="svc-tag sub">あわせて使いたい</span>
+      <div class="svc-name">【2つ目のエージェント名】</div>
+      <div class="svc-desc">【説明】</div>
+      <ul class="feat">
+        <li>特徴1</li>
+        <li>特徴2</li>
+        <li>特徴3</li>
+      </ul>
+      <a href="【2つ目のアフィリエイトURL】"
+         target="_blank" rel="noopener sponsored"
+         class="btn" style="background:#333;">
+        詳細を確認する →
+      </a>
+    </div>
+    -->
+
+  </div>
+</div>
+
+
+<!-- ============================================================
+     FAQ
+     ============================================================ -->
+<div class="section">
+  <div class="wrap">
+    <p class="section-label">よくある質問</p>
+    <h2>転職エージェントを使う前の疑問</h2>
+
+    <div style="margin-top:26px;">
+      <div class="faq-item">
+        <div class="faq-q">在職中でも利用できますか？</div>
+        <p class="faq-a">できます。むしろ在職中に転職活動する人の方が多いです。平日夜や土日に面談を設定してくれるエージェントがほとんどです。</p>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">転職先が決まらなくても費用はかかりますか？</div>
+        <p class="faq-a">かかりません。転職エージェントは企業側から報酬をもらう仕組みなので、利用者は完全無料です。内定が出なくても一切費用は発生しません。</p>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">登録したら転職しないといけないですか？</div>
+        <p class="faq-a">そんなことはないです。「情報収集だけしたい」「まだ迷っている」という状態での登録も普通にあります。担当者に正直に伝えてください。</p>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">担当者と合わない場合はどうすればいいですか？</div>
+        <p class="faq-a">担当者変更を申し出てください。「別の担当者にしてほしい」と伝えるだけでOKです。合わない担当者と続けるのが一番もったいないです。</p>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">何社くらい登録すればいいですか？</div>
+        <p class="faq-a">最初は1〜2社で十分です。慣れてきたら増やすのはありですが、最初から5社以上登録すると管理できなくなります。</p>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">年齢的に遅いですか？</div>
+        <p class="faq-a">今が一番早いタイミングです。転職は「思い立ったとき」が動き出すベストなタイミングで、迷っている間にも市場の状況は変わっていきます。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     FINAL CTA
+     ============================================================ -->
+<div class="section section-dark" style="padding:56px 0;">
+  <div class="wrap" style="text-align:center;">
+    <p style="color:#777;font-size:13px;margin-bottom:14px;">このページを読んだあなたへ</p>
+    <h2 style="color:#fff;margin-bottom:18px;">
+      「転職しようかな」と思ったとき、<br>動き出した人が変われます
+    </h2>
+    <p style="color:#aaa;font-size:14px;margin-bottom:30px;line-height:1.9;">
+      登録は無料で5分でできます。<br>
+      まず話を聞いてもらうだけでも、自分のキャリアが整理されます。
+    </p>
+
+    <!-- ★★★ 最終CTAボタン ★★★ -->
+    <a href="【アフィリエイトURL】"
+       target="_blank"
+       rel="noopener sponsored"
+       class="btn"
+       style="max-width:460px;margin:0 auto;font-size:18px;padding:20px 32px;border-radius:8px;">
+      無料で登録してみる →
+    </a>
+    <p style="color:#555;font-size:12px;margin-top:12px;">※ 完全無料・強引な勧誘はありません</p>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     FOOTER
+     ============================================================ -->
+<footer>
+  <div class="wrap">
+    <p>
+      運営: <span class="url-placeholder">← アカウント名 or 運営者名</span><br>
+      お問い合わせ: <span class="url-placeholder">← SNSのDMリンク or メールアドレス</span>
+    </p>
+    <p style="margin-top:14px;">
+      <a href="#">プライバシーポリシー</a>　|　<a href="#">免責事項</a>
+    </p>
+    <p style="margin-top:14px;">
+      ※ このページにはアフィリエイトリンクが含まれています。<br>
+      サービスへの申し込みが発生した場合、当サイトに報酬が支払われることがあります。<br>
+      掲載情報は執筆時点のものです。最新情報は各サービス公式サイトをご確認ください。
+    </p>
+    <p style="margin-top:14px;">© 2025 <span class="url-placeholder">← サイト名</span> All Rights Reserved.</p>
+  </div>
+</footer>
+
+
+<!-- ============================================================
+     STICKY CTA
+     ============================================================ -->
+<div class="sticky">
+  <!-- ★★★ スティッキーボタン ★★★ -->
+  <a href="【アフィリエイトURL】"
+     target="_blank"
+     rel="noopener sponsored"
+     class="btn">
+    無料で登録してみる →
+  </a>
+</div>
+
+<div class="sticky-gap"></div>
+
+</body>
+</html>
