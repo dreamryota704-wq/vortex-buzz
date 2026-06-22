@@ -145,6 +145,20 @@ def _spaced_text_width(draw, text: str, font, spacing: int = 3) -> int:
     return total
 
 
+def _auto_fit_font_spaced(draw, text: str, start_size: int, max_w: int,
+                          weight: str = "black", spacing: int = 2):
+    """レタースペーシング込みでテキストが max_w に収まる最大フォントサイズを返す。"""
+    size = start_size
+    while size > 18:
+        font = _get_font(size, weight)
+        if font is None:
+            break
+        if _spaced_text_width(draw, text, font, spacing) <= max_w:
+            return font, size
+        size -= 2
+    return _get_font(max(18, size), weight), max(18, size)
+
+
 def _make_clip(img, duration: float, position):
     if not NUMPY_AVAILABLE:
         return None
@@ -292,10 +306,19 @@ def _render_slide(
             rendered_lines.append((None, None, BLANK_GAP, None, None))
 
         for raw_line in grp_lines:
-            # 幅超えを自動折り返し
-            wrapped = _wrap_to_width(_tmp_draw, raw_line, font, MAX_TEXT_W)
-            for sub in wrapped:
-                rendered_lines.append((role, font, lh, color, sub if sub.strip() else None))
+            if role == "large":
+                # hookは折り返しなし: フォントサイズを自動縮小して1行に収める
+                if raw_line.strip():
+                    fit_font, fit_size = _auto_fit_font_spaced(
+                        _tmp_draw, raw_line, 58, MAX_TEXT_W, "black", LETTER_SPACING
+                    )
+                    fit_lh = max(lh, int(fit_size * 1.35))
+                    rendered_lines.append((role, fit_font, fit_lh, color, raw_line))
+            else:
+                # body/cta は従来通り折り返し
+                wrapped = _wrap_to_width(_tmp_draw, raw_line, font, MAX_TEXT_W)
+                for sub in wrapped:
+                    rendered_lines.append((role, font, lh, color, sub if sub.strip() else None))
 
     # ── 描画サイズ計算 ────────────────────────────────────────
     total_h = sum(lh for (_, _, lh, _, _) in rendered_lines)

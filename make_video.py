@@ -93,9 +93,9 @@ def _print_summary(video_id, account, topic, funnel, cta_type, hook_text, output
 
 @click.command()
 @click.option("--account", required=True, help="Account identifier (e.g. account_A)")
-@click.option("--video", required=True, type=click.Path(), help="Path to input video file")
+@click.option("--video", default=None, type=click.Path(), help="Path to input video file")
 @click.option("--bgm", default=None, type=click.Path(), help="Path to BGM audio file")
-@click.option("--info", required=True, help="Bullet points for video body (newline or ・ separated)")
+@click.option("--info", default="", help="Bullet points for video body (newline or ・ separated)")
 @click.option("--topic", required=True, help="Video topic keyword (e.g. 副業)")
 @click.option("--funnel", default=None, help="Funnel identifier (defaults to account's default_funnel)")
 @click.option("--platform", default="tiktok", help="Publishing platform for UTM (default: tiktok)")
@@ -130,7 +130,20 @@ def main(account, video, bgm, info, topic, funnel, platform, slides_json, dry_ru
     color_filter = account_cfg.get("color_filter", "clean")
     sfx_volume = float(account_cfg.get("sfx_volume", -15))
 
-    # ── Validate input video ─────────────────────────────────────────────────
+    # ── Validate input video (省略時は input/videos/ から自動選択) ──────────
+    if not video:
+        import random, glob
+        candidates = [
+            p for ext in ("*.png", "*.jpg", "*.jpeg", "*.mp4")
+            for p in glob.glob(str(BASE_DIR / "input" / "videos" / ext))
+            if "dummy" not in p
+        ]
+        if not candidates:
+            click.echo("エラー: input/videos/ に素材ファイルがありません", err=True)
+            sys.exit(1)
+        video = random.choice(candidates)
+        click.echo(f"[make_video] 素材自動選択: {video}")
+
     video_path = Path(video)
     if not video_path.exists():
         click.echo(f"エラー: 入力動画ファイルが見つかりません: {video_path}", err=True)
