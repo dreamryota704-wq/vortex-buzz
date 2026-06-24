@@ -85,8 +85,8 @@ def _unique_angle_line(persona: dict) -> str:
     return f"【このアカウント固有の切り口】{angle}" if angle else ""
 
 
-def _pick_shared_hook(account: str) -> str:
-    """共通フックリストから日時+アカウントのシードでランダムに1つ選ぶ。"""
+def _pick_shared_hook(account: str, iteration: int = 0) -> str:
+    """共通フックリストから日時+アカウント+iterationのシードでランダムに1つ選ぶ。"""
     path = Path(__file__).parent.parent / "knowledge" / "shared" / "hooks_strong.md"
     if not path.exists():
         return ""
@@ -96,7 +96,7 @@ def _pick_shared_hook(account: str) -> str:
     ]
     if not hooks:
         return ""
-    seed_str = f"{datetime.now().strftime('%Y-%m-%d-%H')}-{account}-hook"
+    seed_str = f"{datetime.now().strftime('%Y-%m-%d')}-{account}-hook-{iteration}"
     h = int(hashlib.md5(seed_str.encode()).hexdigest(), 16)
     return hooks[h % len(hooks)]
 
@@ -220,7 +220,7 @@ SLIDE_5:
 
 # ─── Claude API 呼び出し ─────────────────────────────────────
 
-def generate_slides_with_claude(account: str, pain_word: str) -> list:
+def generate_slides_with_claude(account: str, pain_word: str, iteration: int = 0) -> list:
     """
     Claude APIでペルソナに基づいた5枚スライドを生成して返す。
     Returns: [slide1_text, slide2_text, slide3_text, slide4_text, slide5_text]
@@ -239,7 +239,7 @@ def generate_slides_with_claude(account: str, pain_word: str) -> list:
         import anthropic
         client = anthropic.Anthropic(api_key=api_key)
 
-        hook_hint = _pick_shared_hook(account)
+        hook_hint = _pick_shared_hook(account, iteration=iteration)
         prompt = _build_prompt(persona, pain_word, account=account, hook_hint=hook_hint)
         message = client.messages.create(
             model="claude-haiku-4-5-20251001",  # 速くて安い

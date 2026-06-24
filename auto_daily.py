@@ -186,8 +186,8 @@ def _load_dotenv():
                 os.environ.setdefault(k.strip(), v.strip())
 
 
-def generate_for_account(account: str, dry_run: bool = False) -> dict:
-    """1アカウント分の動画を生成して結果を返す"""
+def generate_for_account(account: str, dry_run: bool = False, iteration: int = 0) -> dict:
+    """1アカウント分の動画を生成して結果を返す。iteration で同日複数本を区別する。"""
     _load_dotenv()
     today_weekday = date.today().weekday()
     today_str = date.today().strftime("%Y-%m-%d")
@@ -196,7 +196,7 @@ def generate_for_account(account: str, dry_run: bool = False) -> dict:
     try:
         from modules.account_design_loader import pick_daily_content
         knowledge_dir = BASE_DIR / "knowledge"
-        design_content = pick_daily_content(account, knowledge_dir, today_weekday)
+        design_content = pick_daily_content(account, knowledge_dir, today_weekday, iteration=iteration)
     except Exception as e:
         logger.warning(f"[{account}] account_design_loader エラー: {e}")
         design_content = None
@@ -217,7 +217,7 @@ def generate_for_account(account: str, dry_run: bool = False) -> dict:
     generated_slides = []
     try:
         from modules.content_generator import generate_slides_with_claude
-        generated_slides = generate_slides_with_claude(account, topic)
+        generated_slides = generate_slides_with_claude(account, topic, iteration=iteration)
         if generated_slides:
             logger.info(f"[{account}] Claude生成スライド使用: topic={topic}")
         else:
@@ -288,17 +288,22 @@ def main():
     parser = argparse.ArgumentParser(description="全アカウント動画一括生成")
     parser.add_argument("--test", action="store_true", help="dry-run（動画処理なし）")
     parser.add_argument("--accounts", nargs="+", help="対象アカウントを限定 (例: account_A taishoku_oa)")
+    parser.add_argument("--count", type=int, default=1, help="1アカウントあたりの生成本数 (デフォルト: 1)")
     args = parser.parse_args()
 
     today_str = date.today().strftime("%Y-%m-%d")
-    logger.info(f"=== auto_daily 開始: {today_str} {'[TEST]' if args.test else ''} ===")
+    logger.info(f"=== auto_daily 開始: {today_str} {'[TEST]' if args.test else ''} count={args.count} ===")
 
     accounts = args.accounts or list(_load_daily_topics().keys())
     results = []
 
     for account in accounts:
-        result = generate_for_account(account, dry_run=args.test)
-        results.append(result)
+        for i in range(args.count):
+            if args.count > 1:
+                logger.info(f"[{account}] 本目: {i+1}/{args.count}")
+            result = generate_for_account(account, dry_run=args.test, iteration=i)
+            result["iteration"] = i + 1
+            results.append(result)
 
     # 結果サマリー
     ok = [r for r in results if r["status"] == "ok"]

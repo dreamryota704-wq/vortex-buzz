@@ -2,9 +2,7 @@ name: 毎日動画生成
 
 on:
   schedule:
-    - cron: '0 20 * * *'  # 05:00 JST（朝）
-    - cron: '0 4 * * *'   # 13:00 JST（昼）
-    - cron: '0 12 * * *'  # 21:00 JST（夜）
+    - cron: '0 20 * * *'  # 毎朝 05:00 JST（= UTC 20:00）
   workflow_dispatch:       # GitHub画面から手動実行も可能
 
 jobs:
@@ -36,18 +34,6 @@ jobs:
         id: date
         run: echo "today=$(TZ=Asia/Tokyo date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
 
-      - name: 時間帯スロットを取得
-        id: slot
-        run: |
-          HOUR=$(TZ=Asia/Tokyo date +'%H')
-          if [ "$HOUR" -lt 10 ]; then
-            echo "name=morning" >> $GITHUB_OUTPUT
-          elif [ "$HOUR" -lt 17 ]; then
-            echo "name=afternoon" >> $GITHUB_OUTPUT
-          else
-            echo "name=evening" >> $GITHUB_OUTPUT
-          fi
-
       - name: 素材を準備（なければテスト用を作成）
         run: |
           mkdir -p input/videos input/bgm
@@ -62,7 +48,7 @@ jobs:
           fi
 
       - name: 動画を生成
-        run: python auto_daily.py
+        run: python auto_daily.py --count 3
         env:
           TZ: Asia/Tokyo
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -73,9 +59,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          DATE="${{ steps.date.outputs.today }}"
-          SLOT="${{ steps.slot.outputs.name }}"
-          TAG="${DATE}-${SLOT}"
+          TAG="${{ steps.date.outputs.today }}"
 
           gh release delete "$TAG" --yes 2>/dev/null || true
           gh release create "$TAG" \
@@ -86,20 +70,26 @@ jobs:
           RELEASE_BASE="https://github.com/${{ github.repository }}/releases/download/$TAG"
           VIDEO_URLS_JSON="{}"
 
-          for mp4 in output/$DATE/*/*.mp4; do
-            [ -f "$mp4" ] || continue
-            account=$(basename $(dirname "$mp4"))
-            asset_name="${account}_${TAG}.mp4"
-            cp "$mp4" "/tmp/$asset_name"
-            gh release upload "$TAG" "/tmp/$asset_name" --clobber
-            VIDEO_URL="$RELEASE_BASE/$asset_name"
-            echo "$account: $VIDEO_URL"
-            VIDEO_URLS_JSON=$(echo "$VIDEO_URLS_JSON" | python3 -c "
+          for account_dir in output/$TAG/*/; do
+            [ -d "$account_dir" ] || continue
+            account=$(basename "$account_dir")
+            i=1
+            for mp4 in "$account_dir"*.mp4; do
+              [ -f "$mp4" ] || continue
+              asset_name="${account}_${TAG}_${i}.mp4"
+              cp "$mp4" "/tmp/$asset_name"
+              gh release upload "$TAG" "/tmp/$asset_name" --clobber
+              VIDEO_URL="$RELEASE_BASE/$asset_name"
+              echo "$account ($i): $VIDEO_URL"
+              VIDEO_URLS_JSON=$(echo "$VIDEO_URLS_JSON" | python3 -c "
           import json, sys
           d = json.load(sys.stdin)
-          d['$account'] = '$VIDEO_URL'
+          key = '${account}_${i}'
+          d[key] = '$VIDEO_URL'
           print(json.dumps(d))
           ")
+              i=$((i+1))
+            done
           done
           echo "video_urls=$VIDEO_URLS_JSON" >> $GITHUB_OUTPUT
 
@@ -122,16 +112,17 @@ jobs:
           data = json.loads(result_file.read_text(encoding="utf-8"))
           webhook_url = os.environ.get("SHEETS_WEBHOOK_URL", "")
 
-          slot = "${{ steps.slot.outputs.name }}"
           for r in data.get("results", []):
               if r.get("status") != "ok":
                   continue
               account = r["account"]
+              iteration = r.get("iteration", 1)
               slides = r.get("slides", [])
               def s(i): return slides[i] if i < len(slides) else ""
+              video_key = f"{account}_{iteration}"
 
               payload = {
-                  "date":      f"{today} ({slot})",
+                  "date":      f"{today} (本{iteration})",
                   "account":   account,
                   "topic":     r.get("topic", ""),
                   "slide_1":   s(0),
@@ -140,7 +131,7 @@ jobs:
                   "slide_4":   s(3),
                   "slide_5":   s(4),
                   "narration": r.get("narration", ""),
-                  "video_url": video_urls.get(account, ""),
+                  "video_url": video_urls.get(video_key, ""),
               }
 
               req_data = json.dumps(payload, ensure_ascii=False).encode("utf-8")

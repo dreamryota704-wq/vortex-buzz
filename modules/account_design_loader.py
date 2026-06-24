@@ -115,11 +115,11 @@ def _parse_tiktok_patterns(md_text: str) -> list:
 # 日時ベースの選択インデックス（3投稿/日で毎回違う）
 # ─────────────────────────────────────────────
 
-def _daily_index(account: str, length: int) -> int:
-    """日付＋時間帯＋アカウントのハッシュで再現性あるランダムインデックスを返す。
-    同じ実行では同じ値を返しつつ、1日3回の実行で異なる値になる。"""
+def _daily_index(account: str, length: int, iteration: int = 0) -> int:
+    """日付＋アカウント＋iterationのハッシュで再現性あるランダムインデックスを返す。
+    iteration が違うと必ず異なる値になり、同日3本で違うテーマを選べる。"""
     now = datetime.now()
-    seed_str = f"{now.strftime('%Y-%m-%d-%H')}-{account}"
+    seed_str = f"{now.strftime('%Y-%m-%d')}-{account}-{iteration}"
     h = int(hashlib.md5(seed_str.encode()).hexdigest(), 16)
     return h % length
 
@@ -183,7 +183,7 @@ def load_hooks_for_account(account: str, knowledge_dir: Path) -> list:
 # メイン API: 今日のコンテンツを返す
 # ─────────────────────────────────────────────
 
-def pick_daily_content(account: str, knowledge_dir: Path, weekday: int) -> Optional[dict]:
+def pick_daily_content(account: str, knowledge_dir: Path, weekday: int, iteration: int = 0) -> Optional[dict]:
     """
     account_design.md から今日の曜日に合ったコンテンツを返す。
 
@@ -210,10 +210,10 @@ def pick_daily_content(account: str, knowledge_dir: Path, weekday: int) -> Optio
     # ── 新フォーマット優先 ──────────────────────────
     video_patterns = _parse_video_patterns(text)
     if video_patterns:
-        pattern = video_patterns[_daily_index(account, len(video_patterns))]
+        pattern = video_patterns[_daily_index(account, len(video_patterns), iteration)]
         slides = pattern["slides"]
         if all_pain_words:
-            topic = all_pain_words[_daily_index(account + "_topic", len(all_pain_words))]
+            topic = all_pain_words[_daily_index(account + "_topic", len(all_pain_words), iteration)]
         else:
             topic = pattern["name"]
 
@@ -229,9 +229,9 @@ def pick_daily_content(account: str, knowledge_dir: Path, weekday: int) -> Optio
     if not patterns:
         return None
 
-    pattern = patterns[_daily_index(account, len(patterns))]
+    pattern = patterns[_daily_index(account, len(patterns), iteration)]
     if all_pain_words:
-        topic = all_pain_words[_daily_index(account + "_topic", len(all_pain_words))]
+        topic = all_pain_words[_daily_index(account + "_topic", len(all_pain_words), iteration)]
     else:
         topic = pattern["name"]
 
