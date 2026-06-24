@@ -72,10 +72,10 @@ PERSONA_MAP = {
 
 # ─── スライド生成プロンプト ───────────────────────────────────
 
-def _build_prompt(persona: dict, pain_word: str, account: str = "") -> str:
+def _build_prompt(persona: dict, pain_word: str, account: str = "", hook_hint: str = "") -> str:
     if account == "account_A":
-        return _build_prompt_career(persona, pain_word)
-    return _build_prompt_taishoku(persona, pain_word)
+        return _build_prompt_career(persona, pain_word, hook_hint)
+    return _build_prompt_taishoku(persona, pain_word, hook_hint)
 
 
 def _unique_angle_line(persona: dict) -> str:
@@ -83,8 +83,25 @@ def _unique_angle_line(persona: dict) -> str:
     return f"【このアカウント固有の切り口】{angle}" if angle else ""
 
 
-def _build_prompt_career(persona: dict, pain_word: str) -> str:
+def _pick_shared_hook(account: str) -> str:
+    """共通フックリストから日時+アカウントのシードでランダムに1つ選ぶ。"""
+    path = Path(__file__).parent.parent / "knowledge" / "shared" / "hooks_strong.md"
+    if not path.exists():
+        return ""
+    hooks = [
+        line.strip() for line in path.read_text(encoding="utf-8").splitlines()
+        if line.strip() and not line.startswith("#") and not line.startswith("##")
+    ]
+    if not hooks:
+        return ""
+    seed_str = f"{datetime.now().strftime('%Y-%m-%d-%H')}-{account}-hook"
+    h = int(hashlib.md5(seed_str.encode()).hexdigest(), 16)
+    return hooks[h % len(hooks)]
+
+
+def _build_prompt_career(persona: dict, pain_word: str, hook_hint: str = "") -> str:
     """account_A（転職・年収アップ系）向けプロンプト"""
+    hook_line = f"【SLIDE_1フックの方向性】「{hook_hint}」→ このテイストを参考に、このペルソナの言葉で作ること" if hook_hint else ""
     return f"""あなたはTikTok/Shortsの動画クリエイターです。
 以下のペルソナとテーマで、5枚スライド動画のテキストを生成してください。
 
@@ -92,6 +109,7 @@ def _build_prompt_career(persona: dict, pain_word: str) -> str:
 【キャラクター】{persona['character']}
 【口調】{persona['tone']}
 【今日のテーマ】{pain_word}
+{hook_line}
 {_unique_angle_line(persona)}
 
 【参考フォーマット（このスタイルで生成すること）】
@@ -137,8 +155,9 @@ SLIDE_5:
 """
 
 
-def _build_prompt_taishoku(persona: dict, pain_word: str) -> str:
+def _build_prompt_taishoku(persona: dict, pain_word: str, hook_hint: str = "") -> str:
     """退職代行系アカウント向けプロンプト"""
+    hook_line = f"【SLIDE_1フックの方向性】「{hook_hint}」→ このテイストを参考に、このペルソナの言葉で作ること" if hook_hint else ""
     return f"""あなたはTikTok/Shortsの動画クリエイターです。
 以下のペルソナに基づいて5枚スライド構成の動画コンテンツを生成してください。
 
@@ -147,6 +166,7 @@ def _build_prompt_taishoku(persona: dict, pain_word: str) -> str:
 【口調】{persona['tone']}
 【ターゲット】{persona['target']}
 【今日のテーマ（痛み語）】{pain_word}
+{hook_line}
 {_unique_angle_line(persona)}
 
 【出力形式】必ず以下の形式のみ出力。余計な説明は不要。
@@ -217,7 +237,8 @@ def generate_slides_with_claude(account: str, pain_word: str) -> list:
         import anthropic
         client = anthropic.Anthropic(api_key=api_key)
 
-        prompt = _build_prompt(persona, pain_word, account=account)
+        hook_hint = _pick_shared_hook(account)
+        prompt = _build_prompt(persona, pain_word, account=account, hook_hint=hook_hint)
         message = client.messages.create(
             model="claude-haiku-4-5-20251001",  # 速くて安い
             max_tokens=1024,
