@@ -4,7 +4,9 @@ Claude APIを使ってアカウントのペルソナに基づき毎回違う5枚
 """
 import os
 import re
+import hashlib
 import logging
+from datetime import datetime
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
