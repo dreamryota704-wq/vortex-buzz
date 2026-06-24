@@ -2,7 +2,9 @@ name: 毎日動画生成
 
 on:
   schedule:
-    - cron: '0 20 * * *'  # 毎朝5:00 JST（= UTC 20:00）
+    - cron: '0 20 * * *'  # 05:00 JST（朝）
+    - cron: '0 4 * * *'   # 13:00 JST（昼）
+    - cron: '0 12 * * *'  # 21:00 JST（夜）
   workflow_dispatch:       # GitHub画面から手動実行も可能
 
 jobs:
@@ -34,6 +36,18 @@ jobs:
         id: date
         run: echo "today=$(TZ=Asia/Tokyo date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
 
+      - name: 時間帯スロットを取得
+        id: slot
+        run: |
+          HOUR=$(TZ=Asia/Tokyo date +'%H')
+          if [ "$HOUR" -lt 10 ]; then
+            echo "name=morning" >> $GITHUB_OUTPUT
+          elif [ "$HOUR" -lt 17 ]; then
+            echo "name=afternoon" >> $GITHUB_OUTPUT
+          else
+            echo "name=evening" >> $GITHUB_OUTPUT
+          fi
+
       - name: 素材を準備（なければテスト用を作成）
         run: |
           mkdir -p input/videos input/bgm
@@ -59,19 +73,20 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG="${{ steps.date.outputs.today }}"
-          # 同日のReleaseが既にあれば削除して再作成
+          DATE="${{ steps.date.outputs.today }}"
+          SLOT="${{ steps.slot.outputs.name }}"
+          TAG="${DATE}-${SLOT}"
+
           gh release delete "$TAG" --yes 2>/dev/null || true
           gh release create "$TAG" \
             --title "動画 $TAG" \
             --notes "自動生成動画 $TAG" \
             --prerelease
 
-          # 動画ファイルを検索してアップロード
           RELEASE_BASE="https://github.com/${{ github.repository }}/releases/download/$TAG"
           VIDEO_URLS_JSON="{}"
 
-          for mp4 in output/$TAG/*/*.mp4; do
+          for mp4 in output/$DATE/*/*.mp4; do
             [ -f "$mp4" ] || continue
             account=$(basename $(dirname "$mp4"))
             asset_name="${account}_${TAG}.mp4"
@@ -107,6 +122,7 @@ jobs:
           data = json.loads(result_file.read_text(encoding="utf-8"))
           webhook_url = os.environ.get("SHEETS_WEBHOOK_URL", "")
 
+          slot = "${{ steps.slot.outputs.name }}"
           for r in data.get("results", []):
               if r.get("status") != "ok":
                   continue
@@ -115,7 +131,7 @@ jobs:
               def s(i): return slides[i] if i < len(slides) else ""
 
               payload = {
-                  "date":      today,
+                  "date":      f"{today} ({slot})",
                   "account":   account,
                   "topic":     r.get("topic", ""),
                   "slide_1":   s(0),
