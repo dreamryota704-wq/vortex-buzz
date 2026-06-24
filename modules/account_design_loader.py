@@ -6,6 +6,8 @@ account_design.md を解析して毎日の動画コンテンツ（hook・body・
 """
 import re
 import random
+import hashlib
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
@@ -110,8 +112,27 @@ def _parse_tiktok_patterns(md_text: str) -> list:
 
 
 # ─────────────────────────────────────────────
-# パーサー: 痛み語リスト
+# 日時ベースの選択インデックス（3投稿/日で毎回違う）
 # ─────────────────────────────────────────────
+
+def _daily_index(account: str, length: int) -> int:
+    """日付＋時間帯＋アカウントのハッシュで再現性あるランダムインデックスを返す。
+    同じ実行では同じ値を返しつつ、1日3回の実行で異なる値になる。"""
+    now = datetime.now()
+    seed_str = f"{now.strftime('%Y-%m-%d-%H')}-{account}"
+    h = int(hashlib.md5(seed_str.encode()).hexdigest(), 16)
+    return h % length
+
+
+# ─────────────────────────────────────────────
+# パーサー: 痛み語リスト（共通・アカウント別）
+# ─────────────────────────────────────────────
+
+def _load_shared_pain_words(knowledge_dir: Path) -> list:
+    """knowledge/shared/pain_words_strong.md から共通痛み語を読み込む。"""
+    path = knowledge_dir / "shared" / "pain_words_strong.md"
+    return _parse_pain_words(_load_text(path))
+
 
 def _parse_pain_words(md_text: str) -> list:
     """
@@ -181,18 +202,24 @@ def pick_daily_content(account: str, knowledge_dir: Path, weekday: int) -> Optio
     if not text:
         return None
 
-    pain_words = _parse_pain_words(text)
+    account_pain_words = _parse_pain_words(text)
+    shared_pain_words  = _load_shared_pain_words(knowledge_dir)
+    # 共通痛み語を優先し、アカウント固有語を後ろに追加
+    all_pain_words = shared_pain_words + [w for w in account_pain_words if w not in shared_pain_words]
 
     # ── 新フォーマット優先 ──────────────────────────
     video_patterns = _parse_video_patterns(text)
     if video_patterns:
-        pattern = video_patterns[weekday % len(video_patterns)]
+        pattern = video_patterns[_daily_index(account, len(video_patterns))]
         slides = pattern["slides"]
-        topic = pain_words[weekday % len(pain_words)] if pain_words else pattern["name"]
+        if all_pain_words:
+            topic = all_pain_words[_daily_index(account + "_topic", len(all_pain_words))]
+        else:
+            topic = pattern["name"]
 
         return {
             "topic": topic,
-            "info": "\n".join(s for s in slides[1:4] if s),  # 旧呼び出し元向けフォールバック
+            "info": "\n".join(s for s in slides[1:4] if s),
             "hook_hint": slides[0],
             "slides": slides,
         }
@@ -202,8 +229,11 @@ def pick_daily_content(account: str, knowledge_dir: Path, weekday: int) -> Optio
     if not patterns:
         return None
 
-    pattern = patterns[weekday % len(patterns)]
-    topic = pain_words[weekday % len(pain_words)] if pain_words else pattern["name"]
+    pattern = patterns[_daily_index(account, len(patterns))]
+    if all_pain_words:
+        topic = all_pain_words[_daily_index(account + "_topic", len(all_pain_words))]
+    else:
+        topic = pattern["name"]
 
     if pattern["body_points"]:
         info = "\n".join(f"・{p}" for p in pattern["body_points"])
