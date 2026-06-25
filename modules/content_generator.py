@@ -77,6 +77,8 @@ PERSONA_MAP = {
 def _build_prompt(persona: dict, pain_word: str, account: str = "", hook_hint: str = "") -> str:
     if account == "account_A":
         return _build_prompt_career(persona, pain_word, hook_hint)
+    if account == "taishoku_ob":
+        return _build_prompt_taishoku_ob(persona, pain_word, hook_hint)
     return _build_prompt_taishoku(persona, pain_word, hook_hint)
 
 
@@ -152,6 +154,67 @@ SLIDE_5:
 ・余計な説明・コメントは不要。テキストのみ出力
 
 【最重要】このアカウントのペルソナ（{persona['name']}）として完全になりきること。
+他のどのアカウントとも内容・言葉・切り口が被らないように、
+このキャラクターの実体験・視点・口調だけで生成すること。
+"""
+
+
+def _build_prompt_taishoku_ob(persona: dict, pain_word: str, hook_hint: str = "") -> str:
+    """taishoku_ob（ロジカル男性・ファクトベース）向けプロンプト — SLIDE_1は＼〜／形式"""
+    hook_line = f"【SLIDE_1フックの方向性】「{hook_hint}」→ このテイストを参考に、このペルソナの言葉で作ること" if hook_hint else ""
+    return f"""あなたはTikTok/Shortsの動画クリエイターです。
+以下のペルソナに基づいて5枚スライド構成の動画コンテンツを生成してください。
+
+【アカウント】{persona['name']}
+【キャラクター】{persona['character']}
+【口調】{persona['tone']}
+【ターゲット】{persona['target']}
+【今日のテーマ（痛み語）】{pain_word}
+{hook_line}
+{_unique_angle_line(persona)}
+
+【参考フォーマット（このスタイルで生成すること）】
+
+SLIDE_1:
+＼退職届を受け取らない会社の話／
+
+SLIDE_2:
+法律上、退職は2週間前に申告すれば成立します。
+・会社が拒否しても退職は有効
+・退職届を受け取らないのは違法行為
+・強引に引き止めるのもハラスメント
+
+SLIDE_3:
+それでも辞められないなら
+
+・退職代行サービスを使う
+・内容証明郵便で退職届を送る
+・労働基準監督署に相談する
+
+SLIDE_4:
+退職代行の選び方
+
+民間  → 費用安い・交渉不可
+労組  → 団体交渉できる・残業代請求も可
+弁護士 → 法的トラブルにも対応・費用高め
+
+SLIDE_5:
+事実を知れば、逃げ道は必ずある
+同じ悩みを持つ人へ毎日情報を発信中
+フォローして一緒に抜け出そう
+
+---
+
+【出力ルール】
+・SLIDE_1：必ず「＼〜／」形式の1行フック。テーマに沿った断定的な一言
+・SLIDE_2：事実・法律・データを箇条書き（・のみ使用）
+・SLIDE_3：具体的な行動リスト
+・SLIDE_4：選択肢の比較（民間/労組/弁護士）
+・SLIDE_5：視聴者を励ます1〜2行 ＋ フォローCTA
+・✅ ① → ■ などの記号は絶対使わない。・のみ
+・SLIDE_1〜SLIDE_5 のラベルのみ出力
+
+【最重要】このアカウント（{persona['name']}）として完全になりきること。
 他のどのアカウントとも内容・言葉・切り口が被らないように、
 このキャラクターの実体験・視点・口調だけで生成すること。
 """
