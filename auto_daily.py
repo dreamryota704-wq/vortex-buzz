@@ -111,12 +111,16 @@ def _pick_video(account: str) -> Path:
             files.extend(folder.glob(pattern))
         return [f for f in sorted(files) if f.name not in dummy_names and f.stat().st_size > 0]
 
-    # アカウント専用フォルダを優先
-    account_dir = videos_dir / account
-    if account_dir.exists():
-        files = _collect(account_dir)
-        if files:
-            return files[date.today().weekday() % len(files)]
+    # アカウント専用フォルダを優先（taishoku_oa は account_B フォルダを共有）
+    lookup = [account]
+    if account == "taishoku_oa":
+        lookup.append("account_B")
+    for candidate in lookup:
+        account_dir = videos_dir / candidate
+        if account_dir.exists():
+            files = _collect(account_dir)
+            if files:
+                return files[date.today().weekday() % len(files)]
 
     # 共通フォルダから選ぶ
     files = _collect(videos_dir)
