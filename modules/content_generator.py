@@ -61,6 +61,15 @@ PERSONA_MAP = {
         "cta": "プロフィールのリンクから退職代行の比較・費用を確認できます",
         "unique_angle": "どんなテーマでも「法的事実・仕組み・具体的な手順」で語る。感情的な言葉は使わず、男性が納得できる現実ベースで。",
     },
+    "career_young": {
+        "name": "たくや｜20代転職リアル",
+        "character": "25歳男性・元メーカー勤務。手取り18万・地方転勤辞令で限界→転職エージェント活用→3ヶ月でホワイト転職成功。年収350万→720万（２倍以上）に上昇。同世代に等身大の本音で語る。",
+        "tone": "等身大・本音ベース。「俺も同じだった」「正直に言う」「20代のうちに動かないと後悔する」。説教くさくなく、友達目線で数字と実体験を組み合わせる。",
+        "target": "低年収・地方転勤・ブラック環境で悩む20代男性",
+        "theme": "20代の転職・年収アップ・転職エージェント活用・ホワイト転職・非公開求人",
+        "cta": "20代限定のキャリア相談↓プロフリンクから非公開求人・優遇ルートあるよ",
+        "unique_angle": "どんなテーマでも「手取り18万だったころの俺」「地方転勤辞令から逃げた25歳」の視点から語る。同世代の友達が話すような等身大の言葉で、数字と実体験を必ず入れる。",
+    },
     "taishoku_couple": {
         "name": "夫婦で退職した話",
         "character": "夫35歳(元営業・長時間労働)と妻32歳(元医療事務・育児と仕事の両立が限界)が同時期に退職。子あり・住宅ローンあり。二人の視点で語る。",
@@ -85,6 +94,8 @@ def _build_prompt(persona: dict, pain_word: str, account: str = "", hook_hint: s
         return _build_prompt_taishoku_oa(persona, pain_word, hook_hint)
     if account == "taishoku_couple":
         return _build_prompt_taishoku_couple(persona, pain_word, hook_hint)
+    if account == "career_young":
+        return _build_prompt_career_young(persona, pain_word, hook_hint)
     return _build_prompt_taishoku(persona, pain_word, hook_hint)
 
 
@@ -433,6 +444,59 @@ SLIDE_5:
 """
 
 
+def _build_prompt_career_young(persona: dict, pain_word: str, hook_hint: str = "") -> str:
+    """career_young — 体験談Vlog風・会話テロップ（6スライド・25秒構成）"""
+    return f"""あなたはTikTok動画のテロップライターです。
+25歳の転職体験を語る縦型動画（約25秒・6スライド）のテロップを書いてください。
+
+【キャラクター】{persona['character']}
+【今日のテーマ】{pain_word}
+
+【構成の型（6スライド）】
+①失敗告白 → ②苦労・状況 → ③数字で苦労感 → ④解決策（口コミ風） → ⑤成果（数字） → ⑥対比オチ＋CTA
+
+【絶対ルール】
+・1スライド＝1〜2行（3行厳禁）
+・1行＝最大13文字（短くテンポよく）
+・1スライドの合計文字数＝24文字以内（4秒で読める量）
+・会話口調（正直 / 実は / 〜しちゃった / 〜なんですよ）
+・箇条書き（・）は使わない
+・広告っぽい言葉は使わない
+・年収は必ず「350万→720万」で表現する
+
+【参考テンプレ（この短さ・テイストで）】
+
+SLIDE_1:
+手取り18万で転勤辞令来て
+正直終わったと思いました
+
+SLIDE_2:
+転職サイト20個使ったけど
+1年間うまくいかなかった
+
+SLIDE_3:
+同期と100万以上差がついて
+夜中ずっと求人見てました
+
+SLIDE_4:
+先に転職した同期に聞いて
+エージェント使ってみたら
+
+SLIDE_5:
+年収350万→720万になって
+手取り50万になりました
+
+SLIDE_6:
+20個のサイトより1個の相談
+↓無料相談はプロフリンクから
+
+---
+
+今日のテーマ「{pain_word}」で、たくや（25歳）の体験として上の型で作ること。
+SLIDE_1〜SLIDE_6のラベルのみ出力。余計な説明は不要。
+"""
+
+
 def _build_prompt_taishoku(persona: dict, pain_word: str, hook_hint: str = "") -> str:
     """退職代行系アカウント向けプロンプト（フォールバック）"""
     hook_line = f"【SLIDE_1フックの方向性】「{hook_hint}」→ このテイストを参考に、このペルソナの言葉で作ること" if hook_hint else ""
@@ -519,7 +583,7 @@ def generate_slides_with_claude(account: str, pain_word: str, iteration: int = 0
         hook_hint = _pick_shared_hook(account, iteration=iteration)
         prompt = _build_prompt(persona, pain_word, account=account, hook_hint=hook_hint)
         message = client.messages.create(
-            model="claude-haiku-4-5-20251001",  # 速くて安い
+            model="claude-sonnet-4-6",
             max_tokens=1024,
             messages=[{"role": "user", "content": prompt}],
         )
@@ -531,6 +595,66 @@ def generate_slides_with_claude(account: str, pain_word: str, iteration: int = 0
     except Exception as e:
         logger.error(f"[content_generator] Claude APIエラー: {e}")
         return []
+
+
+_HASHTAGS = {
+    "career_young":    "#転職 #20代転職 #年収アップ #転職エージェント #転職活動 #手取りアップ #キャリアアップ #ホワイト転職 #20代 #転職体験",
+    "account_A":       "#転職 #年収アップ #キャリアアップ #転職エージェント #転職活動 #市場価値 #サラリーマン #転職成功",
+    "account_B":       "#退職代行 #仕事辞めたい #転職 #退職 #転職活動 #退職代行サービス #仕事 #社会人",
+    "taishoku_oa":     "#退職代行 #仕事辞めたい #退職 #限界OL #社会人女子 #パワハラ #転職 #仕事やめたい",
+    "taishoku_ob":     "#退職代行 #仕事辞めたい #退職 #ブラック企業 #パワハラ #労働問題 #転職 #社会人男子",
+    "taishoku_couple": "#退職代行 #夫婦 #共働き #退職 #転職 #子育て #仕事辞めたい #育児",
+}
+
+
+def generate_caption_text(account: str, topic: str, slides: list) -> str:
+    """
+    スライド内容からTikTok投稿文（キャプション＋ハッシュタグ）を生成する。
+    Claude APIを使って自然な投稿文を作る。失敗時はテンプレートで返す。
+    """
+    persona = PERSONA_MAP.get(account, {})
+    hashtags = _HASHTAGS.get(account, "#転職 #仕事")
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+
+    hook = slides[0] if slides else topic
+    result = slides[4] if len(slides) >= 5 else ""
+    cta = slides[5] if len(slides) >= 6 else ""
+
+    if api_key:
+        try:
+            import anthropic
+            client = anthropic.Anthropic(api_key=api_key)
+            slides_text = "\n".join(f"SLIDE_{i+1}: {s}" for i, s in enumerate(slides) if s)
+            prompt = f"""以下のTikTok動画のスライド内容から、TikTok投稿文を書いてください。
+
+【アカウント】{persona.get('name', account)}
+【テーマ】{topic}
+【スライド内容】
+{slides_text}
+
+【投稿文のルール】
+・1〜3行の短い本文（スライドのストーリーを要約）
+・広告っぽくなく、友達に話すような口調
+・最後にハッシュタグを付ける（別行に）
+・ハッシュタグは以下を使用: {hashtags}
+・本文は40〜80文字程度
+
+本文とハッシュタグのみ出力。余計な説明は不要。"""
+
+            message = client.messages.create(
+                model="claude-sonnet-4-6",
+                max_tokens=300,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            caption = message.content[0].text.strip()
+            logger.info(f"[content_generator] キャプション生成完了: {account}")
+            return caption
+        except Exception as e:
+            logger.warning(f"[content_generator] キャプション生成エラー: {e}")
+
+    # フォールバック: テンプレートで生成
+    body = f"{hook}\n\n→ {result}" if result else hook
+    return f"{body}\n\n{hashtags}"
 
 
 def _parse_slides(raw: str) -> list:
@@ -546,5 +670,7 @@ def _parse_slides(raw: str) -> list:
             content = parts[i + 1].strip()
             slide_dict[num] = content
 
-    slides = [slide_dict.get(n, "") for n in range(1, 6)]
+    max_slide = max(slide_dict.keys()) if slide_dict else 5
+    n_slides = max(5, min(6, max_slide))
+    slides = [slide_dict.get(n, "") for n in range(1, n_slides + 1)]
     return slides if any(slides) else []
