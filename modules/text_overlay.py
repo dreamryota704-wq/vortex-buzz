@@ -407,14 +407,30 @@ def create_hook_overlay(text: str, duration: float = 3.0, font_size: int = 68,
 
 def create_body_overlay(points: List[str], start_time: float = 3.0,
                         font_size: int = 52, video_duration: float = 15.0,
-                        dur_each: float = None):
+                        dur_each: float = None,
+                        start_times: List[float] = None,
+                        durations: List[float] = None):
     """
     ボディスライド群（中間）。
-    points の各要素が1枚のスライドテキスト（改行・ブランク行込みの完全フォーマット）。
+    start_times / durations を渡すとTTS同期モード（per-slide timing）。
     """
     if not PIL_AVAILABLE or not MOVIEPY_AVAILABLE or not points:
         return []
 
+    # TTS同期モード: 明示的なstart_times/durationsを使う
+    if start_times and durations:
+        clips = []
+        for slide_text, t_start, dur in zip(points, start_times, durations):
+            canvas = _render_slide(slide_text, slide_role="body")
+            if canvas is None:
+                continue
+            clip = _make_clip(canvas, dur, (0, 0))
+            if clip:
+                clip = clip.set_start(t_start).crossfadein(0.2)
+                clips.append(clip)
+        return clips
+
+    # 従来モード: 固定dur_each
     if dur_each is None:
         cta_reserve = 3.0
         total = video_duration - start_time - cta_reserve
@@ -428,11 +444,9 @@ def create_body_overlay(points: List[str], start_time: float = 3.0,
         actual_dur = min(dur_each, video_duration - t_start)
         if actual_dur < 0.5:
             break
-
         canvas = _render_slide(slide_text, slide_role="body")
         if canvas is None:
             continue
-
         clip = _make_clip(canvas, actual_dur, (0, 0))
         if clip:
             clip = clip.set_start(t_start).crossfadein(0.3)

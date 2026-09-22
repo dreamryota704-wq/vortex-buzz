@@ -83,6 +83,18 @@ funnels:
       - 転職サポート完全無料
       - 年収アップ実績多数
 
+  chatlady_line_lp:
+    name: チャットレディ募集 LINE登録LP
+    type: recruiting
+    commission: 自社採用（直接応募）
+    base_url: "https://example.com/chatlady-line"  # TODO: 実際のLP/LINE公式アカウントURLに差し替え
+    description: チャットレディ募集のLP。LINE公式アカウント登録へ誘導
+    target_audience: 収入が不安定な20代女性・在宅の仕事に興味がある人
+    key_benefits:
+      - 24時間相談・レスポンスの速いサポート
+      - 完全自由出勤・ノルマなし
+      - 顔出し不要（マスク・アバター対応）
+
 cta_rotation:
   organic_ratio: 2
   conversion_ratio: 1

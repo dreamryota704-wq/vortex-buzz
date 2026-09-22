@@ -98,6 +98,9 @@ _DEFAULT_TOPICS = {
     ],
 }
 
+# ランダムクリップ5本連結モードを使うアカウント（1クリップ約4秒×5本＝約20秒）
+_CHATLADY_CLIP_ACCOUNTS = {"chatlady_yui"}
+
 
 def _pick_video(account: str) -> Path:
     """input/videos/ からアカウント専用 or 共通の素材（動画・写真）を選ぶ"""
@@ -237,17 +240,76 @@ def generate_for_account(account: str, dry_run: bool = False, iteration: int = 0
     except FileNotFoundError as e:
         return {"account": account, "status": "error", "reason": str(e)}
 
+    # ── ③-b 感情マッピング選択（career_young のみ）─────────────────
+    # クリップ優先 → なければ静止画にフォールバック
+    images_json_arg = None
+    if account == "career_young" and final_slides:
+        try:
+            from modules.image_selector import select_clips_for_slides, select_images_for_slides
+            career_img_dir = BASE_DIR / "input" / "videos" / "career_young"
+            clips_dir = career_img_dir / "clips"
+
+            # ① Kling AI 生成済みクリップがあれば優先使用
+            ordered_media = select_clips_for_slides(final_slides, clips_dir)
+            media_type = "クリップ"
+
+            # ② なければ静止画にフォールバック
+            if not ordered_media:
+                ordered_media = select_images_for_slides(final_slides, career_img_dir)
+                media_type = "静止画"
+
+            if ordered_media:
+                images_json_arg = json.dumps(
+                    [str(p) for p in ordered_media], ensure_ascii=False
+                )
+                logger.info(
+                    f"[{account}] 感情マッピング({media_type}): "
+                    + " → ".join(p.stem[-10:] for p in ordered_media)
+                )
+        except Exception as e:
+            logger.warning(f"[{account}] メディア選択エラー: {e}")
+
+    # ── ③-c ランダムクリップ5本連結（チャットレディ系アカウント共通）─────
+    # 1本 約4秒のクリップをスライド枚数分（5本）ランダムに選び、繋げて約20秒の動画にする
+    elif account in _CHATLADY_CLIP_ACCOUNTS and final_slides:
+        try:
+            import random as _rnd
+            clips_dir = BASE_DIR / "input" / "videos" / account
+            video_exts = {".mp4", ".mov", ".avi", ".webm"}
+            all_clips = [
+                p for p in clips_dir.glob("*")
+                if p.suffix.lower() in video_exts and p.stat().st_size > 0
+            ]
+            n = min(5, len(all_clips))
+            if n > 0:
+                chosen = _rnd.sample(all_clips, n)
+                images_json_arg = json.dumps([str(p) for p in chosen], ensure_ascii=False)
+                logger.info(f"[{account}] ランダムクリップ{n}本選択: " + ", ".join(p.name for p in chosen))
+        except Exception as e:
+            logger.warning(f"[{account}] クリップ選択エラー: {e}")
+
     bgm_path = _pick_bgm()
 
     # ── ③ TTS音声生成 ───────────────────────────────────────────────
     narration_path = None
+    slide_durations = []
+
     if final_slides:
         try:
-            from modules.tts_engine import generate_narration
             tts_dir = BASE_DIR / "output" / today_str / account
-            narration_path = generate_narration(account, final_slides, tts_dir)
-            if narration_path:
-                logger.info(f"[{account}] TTS生成完了: {narration_path}")
+            if account == "career_young":
+                # per-slide TTS でテロップと音声を同期
+                from modules.tts_engine import generate_narration_per_slide
+                narration_path, slide_durations = generate_narration_per_slide(
+                    account, final_slides, tts_dir
+                )
+                if narration_path:
+                    logger.info(f"[{account}] per-slide TTS完了: {[round(d,1) for d in slide_durations]}")
+            else:
+                from modules.tts_engine import generate_narration
+                narration_path = generate_narration(account, final_slides, tts_dir)
+                if narration_path:
+                    logger.info(f"[{account}] TTS生成完了: {narration_path}")
         except Exception as e:
             logger.warning(f"[{account}] TTS生成エラー: {e}")
 
@@ -265,6 +327,10 @@ def generate_for_account(account: str, dry_run: bool = False, iteration: int = 0
         cmd += ["--bgm", str(effective_bgm)]
     if final_slides:
         cmd += ["--slides-json", json.dumps(final_slides, ensure_ascii=False)]
+    if images_json_arg:
+        cmd += ["--images-json", images_json_arg]
+    if slide_durations:
+        cmd += ["--slide-durations-json", json.dumps(slide_durations, ensure_ascii=False)]
     if dry_run:
         cmd.append("--dry-run")
 
@@ -275,6 +341,7 @@ def generate_for_account(account: str, dry_run: bool = False, iteration: int = 0
         dest = _move_to_date_folder(account, result.stdout, today_str)
         dest_str = str(dest) if dest else "不明"
         logger.info(f"[{account}] 生成完了 → {dest_str}")
+
         return {
             "account":   account,
             "status":    "ok",

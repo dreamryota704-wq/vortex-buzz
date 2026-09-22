@@ -11,6 +11,9 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+# 転職・退職ジャンル以外のアカウント（shared/pain_words_strong.md を混ぜない）
+_SHARED_PAIN_WORDS_EXCLUDED = {"chatlady_yui", "chatlady_miku", "chatlady_marina"}
+
 
 def _load_text(path: Path) -> str:
     if not path.exists():
@@ -203,9 +206,15 @@ def pick_daily_content(account: str, knowledge_dir: Path, weekday: int, iteratio
         return None
 
     account_pain_words = _parse_pain_words(text)
-    shared_pain_words  = _load_shared_pain_words(knowledge_dir)
-    # 共通痛み語を優先し、アカウント固有語を後ろに追加
-    all_pain_words = shared_pain_words + [w for w in account_pain_words if w not in shared_pain_words]
+
+    # knowledge/shared/pain_words_strong.md は転職・退職ジャンル共通の痛み語。
+    # ジャンルが異なるアカウントに混ぜるとテーマがずれるため対象外にする。
+    if account in _SHARED_PAIN_WORDS_EXCLUDED:
+        all_pain_words = account_pain_words
+    else:
+        shared_pain_words = _load_shared_pain_words(knowledge_dir)
+        # 共通痛み語を優先し、アカウント固有語を後ろに追加
+        all_pain_words = shared_pain_words + [w for w in account_pain_words if w not in shared_pain_words]
 
     # ── 新フォーマット優先 ──────────────────────────
     video_patterns = _parse_video_patterns(text)

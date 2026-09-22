@@ -16,6 +16,7 @@ VOICE_MAP = {
     "taishoku_oa":     "ja-JP-NanamiNeural",   # あかり: 女性・やさしい
     "taishoku_ob":     "ja-JP-KeitaNeural",    # りょう: 男性・落ち着いた
     "taishoku_couple": "ja-JP-NanamiNeural",   # 夫婦: 女性メイン
+    "career_young":    "ja-JP-KeitaNeural",    # たくや: 25歳男性
 }
 
 # 話速設定（ペルソナの口調に合わせて）
@@ -25,12 +26,18 @@ RATE_MAP = {
     "taishoku_oa":     "+10%",   # 少し速め（以前は遅すぎた）
     "taishoku_ob":     "+20%",   # 速め・ロジカル
     "taishoku_couple": "+10%",   # やや速め・温かみ
+    "career_young":    "+45%",   # 速め・元気よく（4s/スライドに合わせて調整）
+}
+
+# ピッチ設定（高めにすると明るく元気な声に）
+PITCH_MAP = {
+    "career_young": "+15Hz",   # 高め・明るい・元気系（ヒカキン寄り）
 }
 
 
-async def _generate_tts_async(text: str, voice: str, rate: str, output_path: Path):
+async def _generate_tts_async(text: str, voice: str, rate: str, output_path: Path, pitch: str = "+0Hz"):
     import edge_tts
-    communicate = edge_tts.Communicate(text, voice, rate=rate)
+    communicate = edge_tts.Communicate(text, voice, rate=rate, pitch=pitch)
     await communicate.save(str(output_path))
 
 
@@ -50,6 +57,7 @@ def generate_narration(account: str, slides: list, output_dir: Path) -> Path | N
 
     voice = VOICE_MAP.get(account, "ja-JP-NanamiNeural")
     rate  = RATE_MAP.get(account, "+0%")
+    pitch = PITCH_MAP.get(account, "+0Hz")
 
     # スライドテキストをナレーション用に整形
     # SLIDE_1: 少し間を置く、SLIDE_2〜4: 読み上げ、SLIDE_5: CTA
@@ -71,12 +79,72 @@ def generate_narration(account: str, slides: list, output_dir: Path) -> Path | N
     output_dir.mkdir(parents=True, exist_ok=True)
 
     try:
-        asyncio.run(_generate_tts_async(full_text, voice, rate, output_path))
+        asyncio.run(_generate_tts_async(full_text, voice, rate, output_path, pitch))
         logger.info(f"[tts_engine] 音声生成完了: {output_path}")
         return output_path
     except Exception as e:
         logger.error(f"[tts_engine] 音声生成エラー: {e}")
         return None
+
+
+def generate_narration_per_slide(account: str, slides: list, output_dir: Path):
+    """
+    スライドごとに個別TTS生成 → 結合。テロップと音声の同期用。
+    Returns: (combined_mp3_path, [slide_durations_seconds]) or (None, [])
+    """
+    if not slides:
+        return None, []
+    try:
+        import edge_tts
+    except ImportError:
+        return None, []
+
+    voice = VOICE_MAP.get(account, "ja-JP-KeitaNeural")
+    rate  = RATE_MAP.get(account, "+0%")
+    pitch = PITCH_MAP.get(account, "+0Hz")
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    per_paths = []
+    durations = []
+    CLIP_DUR = 4.0   # Seedance クリップ長（固定）
+    MIN_DUR  = 3.5   # スライド最短表示秒数
+    PADDING  = 0.3   # 音声終了後の余白
+
+    for i, slide in enumerate(slides):
+        clean = _clean_for_tts(slide)
+        if not clean:
+            durations.append(MIN_DUR)
+            per_paths.append(None)
+            continue
+        slide_mp3 = output_dir / f"_slide_{i+1}.mp3"
+        try:
+            asyncio.run(_generate_tts_async(clean, voice, rate, slide_mp3, pitch))
+            from moviepy.editor import AudioFileClip as _AFC
+            with _AFC(str(slide_mp3)) as a:
+                dur = min(CLIP_DUR, max(MIN_DUR, a.duration + PADDING))
+            durations.append(round(dur, 2))
+            per_paths.append(slide_mp3)
+        except Exception as e:
+            logger.warning(f"[tts_engine] slide {i+1} TTS error: {e}")
+            durations.append(MIN_DUR)
+            per_paths.append(None)
+
+    # 全スライドを結合して narration.mp3 を作る
+    combined_path = output_dir / "narration.mp3"
+    try:
+        from moviepy.editor import AudioFileClip as _AFC, concatenate_audioclips
+        clips = [_AFC(str(p)) for p in per_paths if p and p.exists()]
+        if clips:
+            combined = concatenate_audioclips(clips)
+            combined.write_audiofile(str(combined_path), verbose=False, logger=None)
+            for c in clips:
+                c.close()
+            logger.info(f"[tts_engine] per-slide TTS完了: {len(durations)}枚, 合計{sum(durations):.1f}s → {combined_path}")
+            return combined_path, durations
+    except Exception as e:
+        logger.error(f"[tts_engine] TTS結合エラー: {e}")
+
+    return None, durations
 
 
 def _clean_for_tts(text: str) -> str:

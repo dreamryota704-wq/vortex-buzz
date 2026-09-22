@@ -99,10 +99,12 @@ def _print_summary(video_id, account, topic, funnel, cta_type, hook_text, output
 @click.option("--topic", required=True, help="Video topic keyword (e.g. 副業)")
 @click.option("--funnel", default=None, help="Funnel identifier (defaults to account's default_funnel)")
 @click.option("--platform", default="tiktok", help="Publishing platform for UTM (default: tiktok)")
-@click.option("--slides-json", default=None, help="JSON array of 5 pre-formatted slide texts (SLIDE_1〜5)")
+@click.option("--slides-json", default=None, help="JSON array of pre-formatted slide texts (SLIDE_1〜6)")
+@click.option("--images-json", default=None, help="JSON array of ordered image/clip paths per slide")
+@click.option("--slide-durations-json", default=None, help="JSON array of TTS durations per slide (for sync)")
 @click.option("--dry-run", is_flag=True, default=False, help="Generate metadata without processing video")
 @click.option("--verbose", "-v", is_flag=True, default=False, help="Enable verbose logging")
-def main(account, video, bgm, info, topic, funnel, platform, slides_json, dry_run, verbose):
+def main(account, video, bgm, info, topic, funnel, platform, slides_json, images_json, slide_durations_json, dry_run, verbose):
     """Generate a short video for TikTok/Reels/Shorts with text overlays and BGM."""
     if verbose:
         logging.basicConfig(level=logging.DEBUG, force=True)
@@ -246,44 +248,107 @@ def main(account, video, bgm, info, topic, funnel, platform, slides_json, dry_ru
         from modules.text_overlay import create_hook_overlay, create_body_overlay, create_cta_overlay
         from modules.sfx_engine import add_sfx, get_default_sfx_events
 
-        # 動画時間設定: コンテンツ15秒 + CTA専用5秒 = 合計20秒
-        CONTENT_DURATION = 15.0
+        # 動画時間設定: コンテンツ10秒 + CTA専用5秒 = 合計15秒
+        CONTENT_DURATION = 10.0
         CTA_DURATION     = 5.0
-        TOTAL_DURATION   = CONTENT_DURATION + CTA_DURATION  # 20.0
+        TOTAL_DURATION   = CONTENT_DURATION + CTA_DURATION  # 15.0
 
         click.echo("[make_video] 動画読み込み中...")
         image_exts = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
-        if video_path.suffix.lower() in image_exts:
+        if images_json or video_path.suffix.lower() in image_exts:
             import random as _rnd
-            click.echo("[make_video] 画像ファイルを検出 → ケンバーンズ15秒 + CTA5秒")
+            click.echo("[make_video] 複数メディアモード（画像ケンバーンズ or 複数クリップ連結）")
 
-            dummy_names = {"dummy.mp4", "dummy.mp3"}
-            all_imgs = []
-            for _ext in (".jpg", ".jpeg", ".png", ".webp", ".bmp"):
-                all_imgs.extend(video_path.parent.glob(f"*{_ext}"))
-                all_imgs.extend(video_path.parent.glob(f"*{_ext.upper()}"))
-            all_imgs = sorted({
-                p for p in all_imgs
-                if p.name not in dummy_names and p.stat().st_size > 0
-            })
-            if not all_imgs:
-                all_imgs = [video_path]
+            # --images-json が渡された場合は感情マッピング順で使用
+            selected = []
+            if images_json:
+                import json as _json_mod
+                try:
+                    _ordered = [Path(p) for p in _json_mod.loads(images_json) if Path(p).exists()]
+                    if _ordered:
+                        selected = _ordered
+                        click.echo(f"[make_video] 感情マッピングメディア使用: {[p.name for p in selected]}")
+                except Exception as _e:
+                    click.echo(f"[make_video] images-json パースエラー: {_e}", err=True)
 
-            if len(all_imgs) >= 4:
-                n = _rnd.randint(4, min(5, len(all_imgs)))
-                selected = _rnd.sample(all_imgs, n)
-            else:
-                selected = all_imgs
+            if not selected:
+                dummy_names = {"dummy.mp4", "dummy.mp3"}
+                all_imgs = []
+                for _ext in (".jpg", ".jpeg", ".png", ".webp", ".bmp"):
+                    all_imgs.extend(video_path.parent.glob(f"*{_ext}"))
+                    all_imgs.extend(video_path.parent.glob(f"*{_ext.upper()}"))
+                all_imgs = sorted({
+                    p for p in all_imgs
+                    if p.name not in dummy_names and p.stat().st_size > 0
+                })
+                if not all_imgs:
+                    all_imgs = [video_path]
+
+                if len(all_imgs) >= 4:
+                    n = _rnd.randint(4, min(5, len(all_imgs)))
+                    selected = _rnd.sample(all_imgs, n)
+                else:
+                    selected = all_imgs
 
             dur_each = CONTENT_DURATION / len(selected)
-            click.echo(f"[make_video] {len(selected)}枚使用 (各{dur_each:.1f}秒 × コンテンツ部): " +
+            click.echo(f"[make_video] {len(selected)}本/枚使用 (各{dur_each:.1f}秒): " +
                        ", ".join(p.name for p in selected))
 
-            from moviepy.editor import concatenate_videoclips
-            kb_clips = [_make_kenburns_clip(img, dur_each) for img in selected]
-            # CTA専用背景: 最後の画像をゆっくりケンバーンズで5秒
-            cta_bg = _make_kenburns_clip(selected[-1], CTA_DURATION)
-            clip = concatenate_videoclips(kb_clips + [cta_bg], method="compose")
+            from moviepy.editor import concatenate_videoclips, VideoFileClip as _VFC
+
+            # 動画クリップ(.mp4)か静止画かで処理を分岐
+            _video_exts = {".mp4", ".mov", ".avi", ".webm"}
+            if selected[0].suffix.lower() in _video_exts:
+                # Seedance 2.0 クリップモード（TTS同期対応）
+                import json as _jmod
+
+                # TTS per-slide durations があればそれを使う、なければ 4.0s固定
+                _slide_durs = []
+                if slide_durations_json:
+                    try:
+                        _slide_durs = _jmod.loads(slide_durations_json)
+                    except Exception:
+                        _slide_durs = []
+
+                CLIP_NATIVE = 4.0
+                n_clips = len(selected)
+
+                if _slide_durs and len(_slide_durs) == n_clips:
+                    # TTS同期モード: クリップは常に4.0s固定（テロップ同期はtext_overlay側で処理）
+                    clip_durs = [CLIP_NATIVE] * n_clips
+                    click.echo(f"[make_video] TTS同期クリップモード: {n_clips}本×{CLIP_NATIVE}s = {n_clips*CLIP_NATIVE:.0f}s")
+                else:
+                    # 固定4秒モード
+                    clip_durs = [CLIP_NATIVE] * n_clips
+                    click.echo(f"[make_video] 固定クリップモード: {n_clips}本×{CLIP_NATIVE}s = {n_clips*CLIP_NATIVE:.0f}s")
+
+                all_bg_clips = []
+                for cp, cd in zip(selected, clip_durs):
+                    vc = _VFC(str(cp))
+                    # 素材ごとに解像度がバラバラ（496x864, 1080x1920 等）だと
+                    # concatenate_videoclips(method="compose") が最大サイズの黒背景に
+                    # 小さいクリップをそのまま貼り付けてしまう（余白が出る）。
+                    # 連結前に各クリップを個別に9:16へクロップ・統一する。
+                    vc = crop_vertical(vc)
+                    if vc.duration >= cd:
+                        all_bg_clips.append(vc.subclip(0, cd))
+                    else:
+                        # クリップが短ければループ
+                        loops = int(cd / vc.duration) + 1
+                        all_bg_clips.append(concatenate_videoclips([vc] * loops).subclip(0, cd))
+
+                # 時間定数をTTS合計ベースで設定
+                TOTAL_DURATION   = sum(clip_durs)
+                CONTENT_DURATION = sum(clip_durs[:-1])   # 最後の1本がCTA
+                CTA_DURATION     = clip_durs[-1]
+                dur_each         = clip_durs[0]           # フック表示時間（slide 1）
+
+                clip = concatenate_videoclips(all_bg_clips, method="compose")
+            else:
+                # 静止画 → ケンバーンズ
+                kb_clips = [_make_kenburns_clip(img, dur_each) for img in selected]
+                cta_bg = _make_kenburns_clip(selected[-1], CTA_DURATION)
+                clip = concatenate_videoclips(kb_clips + [cta_bg], method="compose")
         else:
             dur_each = None
             clip = VideoFileClip(str(video_path))
@@ -304,33 +369,69 @@ def main(account, video, bgm, info, topic, funnel, platform, slides_json, dry_ru
         click.echo(f"[make_video] ⑥ カラーフィルター適用: {color_filter}")
         clip = apply_color_filter(clip, color_filter)
 
-        # ⑦ Hook overlay（最初のdur_each秒）
-        click.echo("[make_video] ⑦ フックテキストオーバーレイ...")
-        hook_clip = create_hook_overlay(
-            hook_text,
-            duration=dur_each,
-            font_size=68,
-            topic=None if _slides else topic,
-        )
+        # TTS同期モード判定: clip_durs が存在 & 全スライドを _slides で賄う場合
+        _clip_durs = []
+        if slide_durations_json:
+            try:
+                import json as _jmod2
+                _clip_durs = _jmod2.loads(slide_durations_json)
+            except Exception:
+                pass
 
-        # ⑧ Body text overlay（コンテンツ15秒以内）
-        click.echo("[make_video] ⑧ ボディテキストオーバーレイ...")
-        body_clips = create_body_overlay(
-            body_points,
-            start_time=dur_each,
-            font_size=54,
-            video_duration=CONTENT_DURATION,  # 15秒以内に収める
-            dur_each=dur_each,
-        )
+        _tts_sync = bool(_clip_durs and _slides and len(_clip_durs) == len(_slides))
 
-        # ⑨ CTA overlay（15〜20秒の5秒間）
-        click.echo("[make_video] ⑨ CTAオーバーレイ (15〜20秒)...")
-        cta_clip = create_cta_overlay(
-            cta_text,
-            start_offset_from_end=CTA_DURATION,  # 最後の5秒
-            font_size=44,
-            video_duration=video_duration,  # 20秒基準
-        )
+        if _tts_sync:
+            # TTS同期モード: 全スライドを時系列で並べる
+            click.echo("[make_video] ⑦⑧⑨ TTS同期テキストオーバーレイ...")
+            import itertools
+            cum_starts = list(itertools.accumulate([0.0] + _clip_durs[:-1]))
+            all_slides_text = _slides  # SLIDE_1〜SLIDE_6
+
+            hook_clip = create_hook_overlay(
+                all_slides_text[0],
+                duration=_clip_durs[0],
+                font_size=62,
+                topic=None,
+            )
+            body_clips = create_body_overlay(
+                all_slides_text[1:-1],
+                font_size=54,
+                video_duration=video_duration,
+                start_times=cum_starts[1:-1],
+                durations=_clip_durs[1:-1],
+            )
+            cta_clip = create_cta_overlay(
+                all_slides_text[-1],
+                start_offset_from_end=_clip_durs[-1],
+                font_size=46,
+                video_duration=video_duration,
+            )
+        else:
+            # 従来モード
+            click.echo("[make_video] ⑦ フックテキストオーバーレイ...")
+            hook_clip = create_hook_overlay(
+                hook_text,
+                duration=dur_each,
+                font_size=68,
+                topic=None if _slides else topic,
+            )
+
+            click.echo("[make_video] ⑧ ボディテキストオーバーレイ...")
+            body_clips = create_body_overlay(
+                body_points,
+                start_time=dur_each,
+                font_size=54,
+                video_duration=CONTENT_DURATION,
+                dur_each=dur_each,
+            )
+
+            click.echo("[make_video] ⑨ CTAオーバーレイ...")
+            cta_clip = create_cta_overlay(
+                cta_text,
+                start_offset_from_end=CTA_DURATION,
+                font_size=44,
+                video_duration=video_duration,
+            )
 
         # Composite all overlays
         overlay_clips = [clip]

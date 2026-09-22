@@ -61,3 +61,26 @@ accounts:
       - taishoku_compare_lp
       - taishoku_check_lp
       - tenri_backend_lp
+
+  career_young:
+    name: たくや｜20代転職リアル
+    style: sharp
+    hook_tone: factual
+    cta: "20代限定キャリア相談↓プロフリンクから非公開求人あり🔥"
+    color_filter: cool
+    sfx_volume: -13
+    default_funnel: tenri_backend_lp
+    funnels:
+      - tenri_backend_lp
+      - taishoku_compare_lp
+
+  chatlady_yui:
+    name: ゆい｜在宅のお仕事日記
+    style: empathy
+    hook_tone: empathy
+    cta: "LINEで話だけ聞いてみて。プロフィールのリンクから💬"
+    color_filter: warm
+    sfx_volume: -18
+    default_funnel: chatlady_line_lp
+    funnels:
+      - chatlady_line_lp
